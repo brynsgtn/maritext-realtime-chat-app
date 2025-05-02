@@ -40,14 +40,12 @@ export const signup = async (req, res) => {
             // await sendVerificationEmail(user.email, verificationToken);
 
             res.status(201).json({
-                _id: newUser._id,
-                email: newUser.email,
-                username: newUser.username,
-                profilePic: newUser.profilePic,
-                lastLogin: newUser.lastLogin,
-                isVerified: newUser.isVerified,
-                verificationToken: newUser.verificationToken,
-                verificationTokenExpiresAt: newUser.verificationTokenExpiresAt
+                sucess: true,
+                message: "Account created",
+                user: {
+                    ...newUser._doc,
+                    password: undefined,
+                },
             })
         } else {
             res.status(400).json({ message: "Invalid user data" });
@@ -58,9 +56,39 @@ export const signup = async (req, res) => {
     }
 };
 
-export const verifyEmail = (req, res) => {
-    console.log("verifyEmail");
-    res.send("verifyEmail");
+export const verifyEmail = async (req, res) => {
+    const { code } = req.body;
+
+    try {
+        if (!code) return res.status(400).json({ message: "Verification code is required" });
+
+        const user = await User.findOne({
+            verificationToken: code,
+            verificationTokenExpiresAt: { $gt: Date.now() }
+        });
+
+        if (!user) return res.status(400).json({ message: "Invalid or expired verification token" });
+
+        user.isVerified = true,
+        user.verificationToken = undefined,
+        user.verificationTokenExpiresAt = undefined
+
+        await user.save();
+
+        // to do - send welcome email
+
+        res.status(200).json({
+            sucess: true,
+            message: "Account is now verified",
+            user: {
+                ...user._doc,
+                password: undefined,
+            },
+        })
+    } catch (error) {
+        console.log("error in verifyEmail", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
 };
 
 export const login = (req, res) => {
