@@ -1,6 +1,6 @@
 import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
-import  User  from "../models/user.model.js";
+import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 
 export const signup = async (req, res) => {
@@ -158,7 +158,7 @@ export const updateProfilePicture = async (req, res) => {
 
         const uploadResponse = await cloudinary.uploader.upload(profilePic);
         const updatedUser = await User.findByIdAndUpdate(userID, { profilePic: uploadResponse.secure_url }, { new: true });
-        
+
         res.status(200).json({
             sucess: true,
             message: "Profile picture update successful",
@@ -172,6 +172,42 @@ export const updateProfilePicture = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+export const updateUserName = async (req, res) => {
+    const { userName } = req.body;
+    const userID = req.user._id;
+
+    try {
+        if (!userName) return res.status(400).json({ message: "Username is required" });
+
+        if (userName.length < 6) return res.status(400).json({ message: "Username must be atleast 6 characters" });
+
+        if (req.user.username === userName) {
+            return res.status(400).json({ message: "This is already your current username" });
+          }
+          
+          const userNameExists = await User.findOne({ username: userName, _id: { $ne: userID } });
+          
+          if (userNameExists) {
+            return res.status(400).json({ message: "Username already exists" });
+          }
+          
+
+        const updatedUserName = await User.findByIdAndUpdate(userID, { username: userName }, { new: true });
+
+        res.status(200).json({
+            sucess: true,
+            message: "Username update successful",
+            user: {
+                ...updatedUserName._doc,
+                password: undefined,
+            },
+        })
+    } catch (error) {
+        console.log("Error updating username:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
 
 export const forgotPassword = (req, res) => {
     console.log("forgotPassword");
