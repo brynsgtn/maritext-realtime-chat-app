@@ -4,7 +4,7 @@ import {
     verifyEmail,
     login,
     logout,
-    updateProfile,
+    updateProfilePicture,
     forgotPassword,
     resetPassword,
     checkAuth, 
@@ -16,7 +16,7 @@ router.post("/signup", signup);
 router.post("/verify-email", verifyEmail);
 router.post("/login", login);
 router.post("/logout", logout);
-router.get("/update-profile", updateProfile);
+router.put("/update-profile-picture", updateProfilePicture);
 router.get("/forgot-password", forgotPassword);
 router.get("/reset-password", resetPassword);
 router.get("/check-auth", checkAuth);
