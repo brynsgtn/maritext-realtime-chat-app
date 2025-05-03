@@ -1,5 +1,6 @@
+import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
-import { User } from "../models/user.model.js";
+import  User  from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 
 export const signup = async (req, res) => {
@@ -100,11 +101,11 @@ export const login = async (req, res) => {
             return res.status(400).json({ message: "Email or username is required" });
         }
 
-        if(!password) {
+        if (!password) {
             return res.status(400).json({ message: "Password is required" });
         }
 
-        const user = await User.findOne({$or: [{'email': usernameOrEmail}, {'username': usernameOrEmail}]})
+        const user = await User.findOne({ $or: [{ 'email': usernameOrEmail }, { 'username': usernameOrEmail }] })
 
         if (!user) {
             return res.status(400).json({ message: "Invalid credentials" });
@@ -116,7 +117,7 @@ export const login = async (req, res) => {
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
-        if(!isPasswordValid) return res.status(400).json({ message: "Invalid credentials" });
+        if (!isPasswordValid) return res.status(400).json({ message: "Invalid credentials" });
 
         generateToken(user._id, res);
 
@@ -148,9 +149,28 @@ export const logout = (req, res) => {
     }
 };
 
-export const updateProfile = (req, res) => {
-    console.log("updateProfile");
-    res.send("updateProfile");
+export const updateProfilePicture = async (req, res) => {
+    try {
+        const { profilePic } = req.body;
+        const userID = req.user._id;
+
+        if (!profilePic) return res.status(400).json({ message: "Profile picture is required " });
+
+        const uploadResponse = await cloudinary.uploader.upload(profilePic);
+        const updatedUser = await User.findByIdAndUpdate(userID, { profilePic: uploadResponse.secure_url }, { new: true });
+        
+        res.status(200).json({
+            sucess: true,
+            message: "Profile picture update successful",
+            user: {
+                ...updatedUser._doc,
+                password: undefined,
+            },
+        });
+    } catch (error) {
+        console.log("error in updateProfilePicture controller:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
 };
 
 export const forgotPassword = (req, res) => {
