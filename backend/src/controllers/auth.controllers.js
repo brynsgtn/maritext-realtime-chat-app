@@ -243,9 +243,44 @@ export const forgotPassword = async (req, res) => {
     };
 };
 
-export const resetPassword = (req, res) => {
-    console.log("resetPassword");
-    res.send("resetPassword");
+export const resetPassword = async (req, res) => {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    try {
+        if (!password) return res.status(400).json({ message: "Password is required" });
+
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpiresAt: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ success: false, message: "Invalid or expired reset token" });
+        };
+
+        // check if password input is the current password
+        const isCurrentPassword = await bcrypt.compare(password, user.password);
+
+        if (isCurrentPassword) return res.status(404).json({ message: "New password must be different from your current password" });
+
+        // update password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpiresAt = undefined;
+
+        await user.save();
+
+        // to do - sendResetSuccessEmail(user.email)
+
+        res.status(200).json({ success: true, message: "Password reset successful" });
+
+    } catch (error) {
+        console.log("Errror in resetPassword controller", error);
+        res.status(400).json({ message: "Internal server error" });
+    }
 };
 
 export const checkAuth = (req, res) => {
