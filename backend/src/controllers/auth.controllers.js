@@ -2,6 +2,7 @@ import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 export const signup = async (req, res) => {
     const { email, username, password } = req.body;
@@ -184,14 +185,14 @@ export const updateUserName = async (req, res) => {
 
         if (req.user.username === userName) {
             return res.status(400).json({ message: "This is already your current username" });
-          }
-          
-          const userNameExists = await User.findOne({ username: userName, _id: { $ne: userID } });
-          
-          if (userNameExists) {
+        }
+
+        const userNameExists = await User.findOne({ username: userName, _id: { $ne: userID } });
+
+        if (userNameExists) {
             return res.status(400).json({ message: "Username already exists" });
-          }
-          
+        }
+
 
         const updatedUserName = await User.findByIdAndUpdate(userID, { username: userName }, { new: true });
 
@@ -209,9 +210,37 @@ export const updateUserName = async (req, res) => {
     }
 }
 
-export const forgotPassword = (req, res) => {
-    console.log("forgotPassword");
-    res.send("forgotPassword");
+export const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        if (!email) return res.status(404).json({ message: "Email is required" });
+
+        const user = await User.findOne({ email });
+
+        if (!user) return res.status(404).json({ message: "User not doesn't exists" });
+
+        // generate reset token
+        const resetToken = crypto.randomBytes(20).toString("hex");
+        const resetTokenExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
+
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpiresAt = resetTokenExpiresAt;
+
+        await user.save();
+
+        // to do - send email
+        // await sendPasswordResetEmail(user.email, `${http://localhost:5001}/reset-password/${resetToken}`);
+
+        res.status(200).json({
+            success: true,
+            message: "Password reset link sucessful" // to be changed to "Password reset link sent to your email"
+        })
+
+    } catch (error) {
+        console.log("Errror in forgotPassword controller", error);
+        res.status(400).json({ message: "Internal server error" });
+    };
 };
 
 export const resetPassword = (req, res) => {
@@ -223,3 +252,5 @@ export const checkAuth = (req, res) => {
     console.log("checkAuth");
     res.send("checkAuth");
 };
+
+// to do - deactivate account, add-contacts
