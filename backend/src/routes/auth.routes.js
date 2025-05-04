@@ -14,6 +14,7 @@ import { protectRoute } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
+router.get("/check-auth", protectRoute, checkAuth);
 router.post("/signup", signup);
 router.post("/verify-email", verifyEmail);
 router.post("/login", login);
@@ -22,6 +23,5 @@ router.put("/update-profile-picture", protectRoute, updateProfilePicture);
 router.put("/update-username", protectRoute, updateUserName);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
-router.get("/check-auth", checkAuth);
 
 export default router;
