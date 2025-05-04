@@ -298,4 +298,25 @@ export const checkAuth = async (req, res) => {
     }
 };
 
-// to do - deactivate account, add-contacts
+export const deleteUser = async (req, res) => {
+    try {
+        const deletedUser = await User.findByIdAndDelete(req.userId);
+
+        if (!deletedUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found',
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Account deleted',
+        });
+    } catch (error) {
+        console.log("Error in deleteUser controller", error);
+        res.status(400).json({ message: "Internal server error" });
+    }
+}
+
+// to do -  add-contacts (separate controller file)
