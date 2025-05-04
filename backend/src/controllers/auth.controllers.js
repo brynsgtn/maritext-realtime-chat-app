@@ -238,7 +238,7 @@ export const forgotPassword = async (req, res) => {
         })
 
     } catch (error) {
-        console.log("Errror in forgotPassword controller", error);
+        console.log("Error in forgotPassword controller", error);
         res.status(400).json({ message: "Internal server error" });
     };
 };
@@ -278,14 +278,24 @@ export const resetPassword = async (req, res) => {
         res.status(200).json({ success: true, message: "Password reset successful" });
 
     } catch (error) {
-        console.log("Errror in resetPassword controller", error);
+        console.log("Error in resetPassword controller", error);
         res.status(400).json({ message: "Internal server error" });
     }
 };
 
-export const checkAuth = (req, res) => {
-    console.log("checkAuth");
-    res.send("checkAuth");
+export const checkAuth = async (req, res) => {
+    try {
+        const user = await User.findById(req.userId).select("-password");
+
+        if (!user) {
+            return res.status(400).json({ success: false, message: "User not found" });
+        };
+
+        res.status(200).json({ success: true, user });
+    } catch (error) {
+        console.log("Error in checkAuth controller", error);
+        res.status(400).json({ message: "Internal server error" });
+    }
 };
 
 // to do - deactivate account, add-contacts
