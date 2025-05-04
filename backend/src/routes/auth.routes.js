@@ -1,5 +1,6 @@
 import express from "express";
-import { 
+import {
+    checkAuth,
     signup,
     verifyEmail,
     login,
@@ -8,7 +9,7 @@ import {
     updateUserName,
     forgotPassword,
     resetPassword,
-    checkAuth, 
+    deleteUser,
 } from "../controllers/auth.controllers.js";
 import { protectRoute } from "../middlewares/auth.middleware.js";
 
@@ -23,5 +24,6 @@ router.put("/update-profile-picture", protectRoute, updateProfilePicture);
 router.put("/update-username", protectRoute, updateUserName);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
+router.delete("/delete-user", protectRoute, deleteUser);
 
 export default router;
