@@ -20,7 +20,7 @@ router.post("/login", login);
 router.post("/logout", logout);
 router.put("/update-profile-picture", protectRoute, updateProfilePicture);
 router.put("/update-username", protectRoute, updateUserName);
-router.get("/forgot-password", forgotPassword);
+router.post("/forgot-password", forgotPassword);
 router.get("/reset-password", resetPassword);
 router.get("/check-auth", checkAuth);
 
