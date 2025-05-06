@@ -1,5 +1,5 @@
 import User from "../models/user.model.js";
-import Contact from "../models/contact.models.js"
+import Contact from "../models/contact.model.js"
 
 export const getAllUsers = async (req, res) => {
     try {
@@ -20,15 +20,15 @@ export const getAllUsers = async (req, res) => {
 
 export const sendContactRequest = async (req, res) => {
     try {
-        const { requesterId, recipientId } = req.body;
-
+        const { recipientId } = req.body;
+        const requesterId = req.userId;
         // Prevent self-request
         if (requesterId === recipientId) {
             return res.status(400).json({
                 success: false,
                 message: "Cannot send request to yourself"
             });
-        }
+        };
 
         // Check if a contact already exists between these users
         const existingRequest = await Contact.findOne({
@@ -51,7 +51,7 @@ export const sendContactRequest = async (req, res) => {
             status: "declined"
         });
 
-        
+
         if (declinedRequest) {
             declinedRequest.status = "pending";
             await declinedRequest.save();
@@ -110,8 +110,8 @@ export const getContactRequests = async (req, res) => {
 
 export const acceptContactRequest = async (req, res) => {
     try {
-        const { requesterId, recipientId } = req.body;
-
+        const { requesterId } = req.body;
+        const recipientId = req.userId;
         // Prevent self-request
         if (requesterId === recipientId) {
             return res.status(400).json({
@@ -154,7 +154,9 @@ export const acceptContactRequest = async (req, res) => {
 
 export const declineContactRequest = async (req, res) => {
     try {
-        const { requesterId, recipientId } = req.body;
+        const recipientId = req.userId; // Authenticated user
+        const { requesterId } = req.body;
+        
 
         // Prevent self-request
         if (requesterId === recipientId) {
@@ -198,19 +200,19 @@ export const declineContactRequest = async (req, res) => {
 
 export const getAllUserContacts = async (req, res) => {
     try {
-        const userId = req.userId; // or req.params.id, depending on your route/auth middleware
+        const userId = req.userId;
 
         const contacts = await Contact.find({
             $or: [
                 { requester: userId },
                 { recipient: userId }
             ],
-            status: { $in: ["pending", "accepted"] }
+            status: "accepted"
         })
-        .populate({
-            path: "requester recipient",
-            select: "username email profilePic"
-        });
+            .populate({
+                path: "requester recipient",
+                select: "username email profilePic"
+            });
 
         // Format the response to show the "other" user's data for each contact
         const formattedContacts = contacts.map(contact => {
@@ -237,4 +239,39 @@ export const getAllUserContacts = async (req, res) => {
     }
 };
 
-// to do - removeContact controller
+export const removeContact = async (req, res) => {
+    try {
+        const { recipientId } = req.body;
+        const requesterId = req.userId;
+
+        if (!recipientId) {
+            return res.status(400).json({
+                success: false,
+                message: "Recipient ID is required.",
+            });
+        }
+
+        const deletedContact = await Contact.findOneAndDelete({
+            $or: [
+                { requester: requesterId, recipient: recipientId },
+                { requester: recipientId, recipient: requesterId },
+            ],
+            status: "accepted",
+        });
+
+        if (!deletedContact) return res.status(404).json({
+            success: false,
+            message: "Contact not found or already removed.",
+        });
+
+        res.status(200).json({
+            sucess: true,
+            message: "Contact deleted",
+            user: deletedContact
+        });
+
+    } catch (error) {
+        console.error("Error in removeContact controller:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    };
+};
