@@ -34,6 +34,10 @@ const messageSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+        isUnsent: {
+            type: Boolean,
+            default: false,
+        },
     },
     { timestamps: true }
 );
