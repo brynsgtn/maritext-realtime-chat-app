@@ -1,9 +1,10 @@
 import Message from "../models/message.model.js";
+import mongoose from "mongoose";
 
 export const getMessages = async (req, res) => {
     try {
         const { id: userToChatId } = req.params;
-        const myId = req.user._id;
+        const myId = req.userId;
 
         const messages = await Message.find({
             $or: [
@@ -23,8 +24,9 @@ export const sendMessage = async (req, res) => {
     try {
         const { text, image } = req.body;
         const { id: receiverId } = req.params;
-        const senderId = req.user._id;
+        const senderId = req.userId;
 
+        if (String(senderId) === String(receiverId)) return res.status(400).json({ success: false, message: "Cannot send message to yourself" });
         let imageUrl;
         if (image) {
             // Upload base 64 image to cloudinary
@@ -77,7 +79,7 @@ export const markLatestMessageAsRead = async (req, res) => {
                 success: true,
                 message: "No unread messages to mark as read.",
             });
-        }
+        };
 
         latestUnread.isRead = true;
         latestUnread.readAt = new Date();
@@ -103,4 +105,46 @@ export const markLatestMessageAsRead = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
+export const unsendMessage = async (req, res) => {
+    try {
+        const { id: messageId } = req.params;
+        const senderId = req.userId;
+
+        if (!mongoose.Types.ObjectId.isValid(messageId)) {
+            return res.status(400).json({ error: "Invalid message ID format." });
+        }
+
+        const messageToUnsend = await Message.findOneAndUpdate(
+            { _id: messageId, senderId: senderId },
+            {
+                text: "This message was unsent",
+                image: null,
+                isUnsent: true,
+                updatedAt: new Date()
+            },
+            {
+                new: true
+            }
+        );
+
+        if (!messageToUnsend) {
+            return res.status(400).json({
+                success: false,
+                message: "Message not found",
+            });
+        };
+
+        res.status(200).json({
+            success: true,
+            message: "Message unsent successfully.",
+            unsentMessage: messageToUnsend
+        });
+    } catch (error) {
+        console.error("Error in unsendMessage:", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+// to do - email config, templates and functionality
 
