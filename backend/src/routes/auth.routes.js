@@ -10,6 +10,8 @@ import {
     forgotPassword,
     resetPassword,
     deleteUser,
+    inviteUser,
+    resendVerificationEmail
 } from "../controllers/auth.controllers.js";
 import { protectRoute } from "../middlewares/auth.middleware.js";
 
@@ -25,5 +27,7 @@ router.put("/update-username", protectRoute, updateUserName);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 router.delete("/delete-user", protectRoute, deleteUser);
+router.post("/invite-user", protectRoute, inviteUser);
+router.post('/resend-verification-email', resendVerificationEmail);
 
 export default router;
