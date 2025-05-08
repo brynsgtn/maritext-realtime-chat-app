@@ -1,6 +1,13 @@
 import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/user.model.js";
+import {
+    sendVerificationEmail,
+    sendWelcomeEmail,
+    sendPasswordResetEmail,
+    sendResetSuccessEmail,
+    sendInviteEmail
+} from "../lib/mailtrap/email.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
@@ -38,8 +45,8 @@ export const signup = async (req, res) => {
             // generate token
             generateToken(newUser._id, res);
             await newUser.save();
-            // to do - send verification email
-            // await sendVerificationEmail(user.email, verificationToken);
+
+            await sendVerificationEmail(newUser.email, verificationToken, newUser.username);
 
             res.status(201).json({
                 sucess: true,
@@ -77,7 +84,8 @@ export const verifyEmail = async (req, res) => {
 
         await user.save();
 
-        // to do - send welcome email
+        // to do - homepageURL
+        sendWelcomeEmail(user.email, user.username);
 
         res.status(200).json({
             sucess: true,
@@ -229,8 +237,7 @@ export const forgotPassword = async (req, res) => {
 
         await user.save();
 
-        // to do - send email
-        // await sendPasswordResetEmail(user.email, `${http://localhost:5001}/reset-password/${resetToken}`);
+        await sendPasswordResetEmail(user.email, user.username, `http://localhost:5001/reset-password/${resetToken}`);
 
         res.status(200).json({
             success: true,
@@ -259,6 +266,8 @@ export const resetPassword = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid or expired reset token" });
         };
 
+        if (password.length < 6) return res.status(400).json({ message: "Password must be 6 characters" });
+
         // check if password input is the current password
         const isCurrentPassword = await bcrypt.compare(password, user.password);
 
@@ -273,7 +282,7 @@ export const resetPassword = async (req, res) => {
 
         await user.save();
 
-        // to do - sendResetSuccessEmail(user.email)
+        sendResetSuccessEmail(user.email, user.username);
 
         res.status(200).json({ success: true, message: "Password reset successful" });
 
@@ -319,4 +328,61 @@ export const deleteUser = async (req, res) => {
     }
 }
 
-// to do -  add-contacts (separate controller file)
+export const inviteUser = async (req, res) => {
+    try {
+
+        const { email } = req.body;
+        const registrationURL = "http://localhost:5001/signup" // route in frontend
+
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+
+        const userExists = await User.findOne({ email });
+
+        if (userExists) return res.status(400).json({ success: false, message: "Email already registered" });
+
+
+        await sendInviteEmail(email, registrationURL);
+
+
+        res.status(200).json({ message: 'Invite email sent successfully' });
+    } catch (error) {
+        console.error('Error in inviteUser controller', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+export const resendVerificationEmail = async (req, res) => {
+    const { email } = req.body;
+    try {
+        const user = await User.findOne({ email });
+
+        if (!email) return res.status(400).json({ success: false, message: "Email is required" });
+        if (!user) {
+            return res.status(400).json({ success: false, message: 'User not found' });
+        }
+
+        if (user.isVerified) {
+            return res.status(400).json({ success: false, message: 'User is already verified' });
+        }
+
+        const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+        user.verificationToken = verificationToken;
+        user.verificationTokenExpiresAt = Date.now() + 5 * 60 * 1000 // 5 minutes
+
+        await user.save();
+
+        await sendVerificationEmail(user.email, verificationToken, user.username);
+
+        res.status(200).json({
+            success: true,
+            message: 'Verification email resent successfully',
+        });
+    } catch (error) {
+        console.error('Error in resendVerificationEmail controller:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+// to do - improve inviteUser logic validation (e.g. already invited etc.)
