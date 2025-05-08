@@ -135,6 +135,8 @@ export const unsendMessage = async (req, res) => {
             });
         };
 
+        // to do -socket.io for unsent messages
+
         res.status(200).json({
             success: true,
             message: "Message unsent successfully.",
@@ -146,5 +148,5 @@ export const unsendMessage = async (req, res) => {
     }
 };
 
-// to do - email config, templates and functionality
+
 
