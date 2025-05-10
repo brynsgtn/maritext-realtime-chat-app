@@ -14,6 +14,7 @@ import { useAuthStore } from "./store/useAuthStore.js";
 import { useEffect } from "react"
 
 import { Loader } from "lucide-react";
+import { Toaster } from "react-hot-toast"
 
 
 function App() {
@@ -32,23 +33,46 @@ function App() {
     </div>
   )
 
+  const ProtectedRoute = ({ children }) => {
+    if (!authUser) return <Navigate to="/login" replace />;
+    if (!authUser.isVerified) return <Navigate to="/verify-email" replace />;
+    return children;
+  };
+
   return (
     <div>
       <Navbar />
 
       <Routes>
-        <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
+        <Route path="/" element={
+          authUser ? (
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          ) : (
+            <Navigate to="/login" />
+          )
+        } />
         <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
         <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
         <Route path="/email-verification" element={!authUser ? <EmailVerificationPage /> : <Navigate to="/" />} />
-        <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        } />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/forgot-password" element={!authUser ? <ForgotPasswordPage /> : <Navigate to="/" />} />
         <Route path="/reset-password" element={!authUser ? <ResetPasswordPage /> : <Navigate to="/" />} />
       </Routes>
+
+      <Toaster />
     </div>
 
   )
 }
 
 export default App
+
+
+// to do - verify email and login page
