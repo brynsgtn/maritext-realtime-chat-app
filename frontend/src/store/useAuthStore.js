@@ -19,7 +19,7 @@ export const useAuthStore = create((set) => ({
             set({ authUser: null });
 
         } finally {
-            setTimeout(() => set({ isCheckingAuth: false }), 2000); 
+            set({ isCheckingAuth: false });
         }
     },
 }));
