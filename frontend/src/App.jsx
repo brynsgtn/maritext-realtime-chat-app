@@ -35,9 +35,20 @@ function App() {
 
   const ProtectedRoute = ({ children }) => {
     if (!authUser) return <Navigate to="/login" replace />;
-    if (!authUser.isVerified) return <Navigate to="/verify-email" replace />;
+    // if (!authUser.user.isVerified) return <Navigate to="/email-verification" replace />;
     return children;
   };
+
+  // redirect authenticated users to the home page
+  const RedirectAuthenticatedUser = ({ children }) => {
+
+    if (authUser && authUser.user.isVerified) {
+      return <Navigate to='/' replace />;
+    }
+
+    return children;
+  };
+
 
   return (
     <div>
@@ -45,17 +56,22 @@ function App() {
 
       <Routes>
         <Route path="/" element={
-          authUser ? (
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-          ) : (
-            <Navigate to="/login" />
-          )
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+
         } />
         <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
-        <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path="/email-verification" element={!authUser ? <EmailVerificationPage /> : <Navigate to="/" />} />
+        <Route path="/login" element={
+          <RedirectAuthenticatedUser>
+            <LoginPage />
+          </RedirectAuthenticatedUser>
+        } />
+        <Route path="/email-verification" element={
+          <RedirectAuthenticatedUser>
+            <EmailVerificationPage />
+          </RedirectAuthenticatedUser>
+        } />
         <Route path="/profile" element={
           <ProtectedRoute>
             <ProfilePage />
@@ -75,4 +91,4 @@ function App() {
 export default App
 
 
-// to do - verify email and login page
+// to do - profile and settings page
