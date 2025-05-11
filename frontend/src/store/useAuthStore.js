@@ -9,6 +9,7 @@ export const useAuthStore = create((set) => ({
     isUpdatingProfile: false,
     isCheckingAuth: true,
     isLoggingOut: false,
+    isVerifyingEmail: false,
 
     checkAuth: async () => {
         try {
@@ -32,23 +33,61 @@ export const useAuthStore = create((set) => ({
             set({ authUser: res.data });
             toast.success("Account created successfully");
         } catch (error) {
-            toast.error(error.response.data.message);
+            toast.error(error?.response?.data?.message || error.message);
         } finally {
             set({ isSigningUp: false });
         };
     },
 
-    logout: async() => {
+    logout: async () => {
         set({ isLoggingOut: true });
         try {
             await axiosInstance.post("/auth/logout");
             set({ authUser: null });
             toast.success("Logged out successfully");
 
-          } catch (error) {
-            toast.error(error.response.data.message);
-          } finally {
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+        } finally {
             set({ isLoggingOut: false });
-          };
+        };
+    },
+
+    verifyEmail: async (code) => {
+        set({ isVerifyingEmail: true });
+        try {
+            const res = await axiosInstance.post("/auth/verify-email", { code });
+            toast.success(res.data.message);
+            return true;
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+            return false;
+        } finally {
+            set({ isVerifyingEmail: false });
+        }
+    },
+
+    resendVerificationEmail: async (email) => {
+        try {
+            const res = await axiosInstance.post("/auth/resend-verification-email", { email });
+            toast.success(res.data.message);
+            return true;
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+            return false;
+        }
+    },
+
+    login: async (data) => {
+        set({ isLoggingIn: true });
+        try {
+            const res = await axiosInstance.post("/auth/login", data);
+            set({ authUser: res.data });
+            toast.success("You are now logged in");
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+        } finally {
+            set({ isLoggingIn: false });
+        };
     },
 }));
