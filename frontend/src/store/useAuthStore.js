@@ -6,7 +6,8 @@ export const useAuthStore = create((set) => ({
     authUser: null,
     isSigningUp: false,
     isLoggingIn: false,
-    isUpdatingProfile: false,
+    isUpdatingProfilePicture: false,
+    isUpdatingUsername: false,
     isCheckingAuth: true,
     isLoggingOut: false,
     isVerifyingEmail: false,
@@ -90,4 +91,51 @@ export const useAuthStore = create((set) => ({
             set({ isLoggingIn: false });
         };
     },
-}));
+
+    updateProfilePicture: async (data) => {
+        set({ isUpdatingProfilePicture: true });
+        try {
+            const res = await axiosInstance.put("/auth/update-profile-picture", data);
+
+            set(state => ({
+                authUser: {
+                    ...state.authUser,
+                    user: {
+                        ...state.authUser.user,
+                        profilePic: res.data.user.profilePic
+                    }
+                }
+            }));
+
+            toast.success("Profile picture updated")
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+        } finally {
+            set({ isUpdatingProfilePicture: false });
+        };
+    },
+
+    updateUsername: async (data) => {
+        set({ isUpdatingUsername: true });
+        try {
+            console.log("Sending username update:", data);
+            const res = await axiosInstance.put("/auth/update-username", data);
+
+            set(state => ({
+                authUser: {
+                    ...state.authUser,
+                    user: {
+                        ...state.authUser.user,
+                        username: res.data.user.username,
+                    }
+                }
+            }));
+
+            toast.success("Username updated")
+            } catch (error) {
+                toast.error(error?.response?.data?.message || error.message);
+            } finally {
+                set({ isUpdatingUsername: false });
+            }
+        },
+    }));
