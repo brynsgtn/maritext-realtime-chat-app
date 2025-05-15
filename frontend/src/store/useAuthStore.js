@@ -11,6 +11,7 @@ export const useAuthStore = create((set) => ({
     isCheckingAuth: true,
     isLoggingOut: false,
     isVerifyingEmail: false,
+    isForgettingPassword: false,
 
     checkAuth: async () => {
         try {
@@ -118,7 +119,6 @@ export const useAuthStore = create((set) => ({
     updateUsername: async (data) => {
         set({ isUpdatingUsername: true });
         try {
-            console.log("Sending username update:", data);
             const res = await axiosInstance.put("/auth/update-username", data);
 
             set(state => ({
@@ -132,10 +132,23 @@ export const useAuthStore = create((set) => ({
             }));
 
             toast.success("Username updated")
-            } catch (error) {
-                toast.error(error?.response?.data?.message || error.message);
-            } finally {
-                set({ isUpdatingUsername: false });
-            }
-        },
-    }));
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+        } finally {
+            set({ isUpdatingUsername: false });
+        }
+    },
+
+    forgotPassword: async (email) => {
+        set({ isForgettingPassword: true });
+        try {
+            console.log(email)
+            const res = await axiosInstance.post("/auth/forgot-password", { email })
+            toast.success(res.data.message);
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+        } finally {
+            set({ isForgettingPassword: false });
+        }
+    },
+}));
