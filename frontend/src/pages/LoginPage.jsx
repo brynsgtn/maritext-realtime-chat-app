@@ -87,6 +87,12 @@ const LoginPage = () => {
               </div>
             </div>
 
+            <div className='flex items-center mb-6'>
+              <Link to='/forgot-password' className='text-sm text-primary hover:underline'>
+                Forgot password?
+              </Link>
+            </div>
+
             <button type="submit" className="btn btn-primary w-full" disabled={isLoggingIn}>
               {isLoggingIn ? (
                 <>
@@ -102,7 +108,7 @@ const LoginPage = () => {
           <div className="text-center">
             <p className="text-base-content/60">
               Don&apos;t have an account?{" "}
-              <Link to="/signup" className="link link-primary">
+              <Link to="/signup" className=" text-primary hover:underline">
                 Create account
               </Link>
             </p>
