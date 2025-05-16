@@ -79,9 +79,8 @@ function App() {
         } />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/forgot-password" element={!authUser ? <ForgotPasswordPage /> : <Navigate to="/" />} />
-        <Route path="/reset-password" element={!authUser ? <ResetPasswordPage /> : <Navigate to="/" />} />
+        <Route path="/reset-password/:token" element={!authUser ? <ResetPasswordPage /> : <Navigate to="/" />} />
       </Routes>
-
       <Toaster />
     </div>
 
