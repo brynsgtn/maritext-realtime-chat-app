@@ -17,11 +17,8 @@ const ForgotPasswordPage = () => {
     const success = await forgotPassword(email);
 
     if (success == true) {
-      await forgotPassword(email);
       setIsSubmitted(true);
     }
-    setIsSubmitted(false);
-    console.log("Email to store: ", email)
   };
 
   return (
@@ -66,7 +63,7 @@ const ForgotPasswordPage = () => {
                   </div>
                   <input
                     type="email"
-                    className="input input-bordered w-full pl-10"
+                    className="input input-bordered w-full pl-10 focus:outline-none"
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -99,7 +96,7 @@ const ForgotPasswordPage = () => {
           )}
 
           <div className="text-center pt-4">
-            <Link to="/login" className="link link-primary inline-flex items-center">
+            <Link to="/login" className="text-primary inline-flex items-center hover:underline">
               <ArrowLeft className="h-4 w-4 mr-2" /> Back to Login
             </Link>
           </div>
