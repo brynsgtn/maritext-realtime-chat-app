@@ -24,8 +24,8 @@ app.use(
 );
 
 app.use("/api/auth", authRoutes);
-app.use("/api/contact", contactRoutes);
-app.use("/api/message", messageRoutes);
+app.use("/api/contacts", contactRoutes);
+app.use("/api/messages", messageRoutes);
 
 app.listen(PORT, () => {
     console.log(`🚀 Server Running on port ${PORT}`);
