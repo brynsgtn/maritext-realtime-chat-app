@@ -22,44 +22,54 @@ export const sendContactRequest = async (req, res) => {
     try {
         const { recipientId } = req.body;
         const requesterId = req.userId;
+
         // Prevent self-request
         if (requesterId === recipientId) {
             return res.status(400).json({
                 success: false,
                 message: "Cannot send request to yourself"
             });
-        };
+        }
 
-        // Check if a contact already exists between these users
-        const existingRequest = await Contact.findOne({
-            requester: requesterId,
-            recipient: recipientId,
-            status: "pending"
+        // Check if a contact already exists (in either direction)
+        const existingContact = await Contact.findOne({
+            $or: [
+                { requester: requesterId, recipient: recipientId },
+                { requester: recipientId, recipient: requesterId }
+            ]
         });
 
-        if (existingRequest) {
+        if (existingContact) {
+            if (existingContact.status === "pending") {
+                return res.status(400).json({
+                    success: false,
+                    message: "Contact request already sent or received"
+                });
+            }
+
+            if (existingContact.status === "accepted") {
+                return res.status(400).json({
+                    success: false,
+                    message: "You are already connected"
+                });
+            }
+
+            if (existingContact.status === "declined" && existingContact.requester.toString() === requesterId) {
+                // Reactivate a previously declined request
+                existingContact.status = "pending";
+                await existingContact.save();
+
+                return res.status(200).json({
+                    success: true,
+                    message: "Previously declined request is now pending again",
+                    contact: existingContact
+                });
+            }
+
+            // Declined by you or in reverse direction, don't allow resending
             return res.status(400).json({
                 success: false,
-                message: "Request already sent"
-            });
-        };
-
-        // Check if a contact already exists between these users
-        const declinedRequest = await Contact.findOne({
-            requester: requesterId,
-            recipient: recipientId,
-            status: "declined"
-        });
-
-
-        if (declinedRequest) {
-            declinedRequest.status = "pending";
-            await declinedRequest.save();
-
-            return res.status(200).json({
-                success: true,
-                message: "Previously declined request is now pending again",
-                contact: declinedRequest
+                message: "Cannot send request again"
             });
         }
 
@@ -67,7 +77,7 @@ export const sendContactRequest = async (req, res) => {
         const newContact = new Contact({
             requester: requesterId,
             recipient: recipientId,
-            status: "pending", // or leave out if default is set
+            status: "pending",
         });
 
         await newContact.save();
@@ -86,6 +96,7 @@ export const sendContactRequest = async (req, res) => {
         });
     }
 };
+
 
 export const getContactRequests = async (req, res) => {
     try {
