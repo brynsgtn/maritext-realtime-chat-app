@@ -370,7 +370,9 @@ import {
     XCircle,
     User2,
     UserPlus2Icon,
-    MailPlus
+    MailPlus,
+    Loader2,
+    Clock
 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -654,7 +656,9 @@ const Sidebar = () => {
         isUsersLoading,
         isContactLoading,
         getAllUsers,
-        users: allUsers
+        users: allUsers,
+        sendContactRequest,
+        isSendingContactRequest
     } = useChatStore();
 
     const [filterStatus, setFilterStatus] = useState("all"); // "all", "online", "offline"
@@ -683,10 +687,9 @@ const Sidebar = () => {
     });
 
     useEffect(() => {
-        if (!useMockData || !useMockUsers) {
+
             getUserContacts();
             getAllUsers();
-        }
         console.log(users.users)
     }, [getUserContacts, useMockData, getAllUsers]);
 
@@ -702,13 +705,13 @@ const Sidebar = () => {
         if (!useMockUsers) {
             getAllUsers();
         }
-        console.log("All users: ", users)
+        console.log(users)
     };
 
-    const handleRequestContact = () => {
-        console.log("Clicked handleRequestContact!")
-        alert("handleRequestContact")
-    }
+    const handleRequestContact = (recipientId, user) => {
+        sendContactRequest(recipientId)
+        console.log(user)
+    };
 
     if (isContactLoading && !useMockData) return <SidebarSkeleton />;
 
@@ -906,7 +909,7 @@ const Sidebar = () => {
             {/* Add Contact Modal */}
             {showModal && (
                 <div
-                    className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
+                    className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center backdrop-blur-sm"
                     onClick={() => setShowModal(false)}
                     role="dialog"
                     aria-modal="true"
@@ -930,79 +933,107 @@ const Sidebar = () => {
                             Add Contact
                         </h2>
 
-                        {/* Dev: Toggle test/mock data */}
-                        {process.env.NODE_ENV !== "production" && (
-                            <div className="mt-2 hidden lg:flex items-center gap-2">
-                                <label className="cursor-pointer flex items-center gap-2 select-none">
-                                    <input
-                                        type="checkbox"
-                                        checked={useMockUsers}
-                                        onChange={toggleMockUsers}
-                                        className="checkbox checkbox-xs"
-                                    />
-                                    <span className="text-xs text-base-content/60">Use test data</span>
-                                </label>
-                            </div>
-                        )}
-
-                        {/* User List */}
-                        {users.length > 0 ? (
-                            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-                                {users.map(request => (
-                                    <div
-                                        key={request._id}
-                                        className="flex items-center gap-3 p-3 border border-base-300 dark:border-base-700 rounded-lg bg-base-200 dark:bg-base-800"
-                                    >
-                                        <div className="size-12 rounded-full overflow-hidden flex-shrink-0">
-                                            {request.profilePic ? (
-                                                <img src={request.profilePic} alt={request.username} className="size-12 object-cover" />
-                                            ) : (
-                                                <div className="size-12 flex items-center justify-center bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
-                                                    <User2 className="size-6" />
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-medium truncate text-base-content">
-                                                {request.username}
-                                            </div>
-                                            <div className="text-xs text-base-content/60 italic">
-                                                <span className="inline-block bg-base-300 dark:bg-base-700 px-2 py-0.5 rounded-full">
-                                                    Joined {dayjs(request.createdAt).fromNow()}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-col gap-1">
-                                            <button
-                                                className="p-1.5 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-gray-500 dark:text-gray-100 dark:hover:bg-gray-800 transition-colors hover:cursor-pointer"
-                                                onClick={handleRequestContact}
-                                            >
-                                                <UserPlus2Icon className="size-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                        {isUsersLoading ? (
+                            <div className="flex justify-center items-center h-40">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
                             </div>
                         ) : (
-                            <div className="text-center pt-6">
-                                <p className="text-base-content/60">No Other Users</p>
-                                <button
-                                    onClick={() => {
-                                        setShowModal(false);
-                                        setShowInviteModal(true);
-                                    }}
-                                    className="btn btn-small btn-secondary rounded-lg px-4 text-medium font-medium hover:opacity-90 items-center justify-center gap-1 py-2 mt-3"
-                                >
-                                    <MailPlus className="w-4 h-4" />
-                                    <span className="hidden lg:inline">Invite</span>
-                                </button>
-                            </div>
+                            <>
+                                {/* Dev: Toggle test/mock data */}
+                                {process.env.NODE_ENV !== "production" && (
+                                    <div className="mt-2 hidden lg:flex items-center gap-2">
+                                        <label className="cursor-pointer flex items-center gap-2 select-none">
+                                            <input
+                                                type="checkbox"
+                                                checked={useMockUsers}
+                                                onChange={toggleMockUsers}
+                                                className="checkbox checkbox-xs"
+                                            />
+                                            <span className="text-xs text-base-content/60">Use test data</span>
+                                        </label>
+                                    </div>
+                                )}
+
+                                {/* User List */}
+                                {Array.isArray(users) && users.length > 0 ? (
+                                    <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                                        {users.map(user => (
+                                            <div
+                                                key={user._id}
+                                                className="flex items-center gap-3 p-3 border border-base-300 dark:border-base-700 rounded-lg bg-base-200 dark:bg-base-800"
+                                            >
+                                                <div className="size-12 rounded-full overflow-hidden flex-shrink-0">
+                                                    {user.profilePic ? (
+                                                        <img src={user.profilePic} alt={user.username} className="size-12 object-cover" />
+                                                    ) : (
+                                                        <div className="size-12 flex items-center justify-center bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
+                                                            <User2 className="size-6" />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-medium truncate text-base-content">
+                                                        {user.username}
+                                                    </div>
+                                                    <div className="text-xs text-base-content/60 italic">
+                                                        <span className="inline-block bg-base-300 dark:bg-base-700 px-2 py-0.5 rounded-full">
+                                                            Joined {dayjs(user.createdAt).fromNow()}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {user.contactRequest?.status === "accepted" ? (
+                                                    // Connected
+                                                    <div
+                                                        className="p-1.5 rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300"
+                                                        title="Already connected"
+                                                    >
+                                                        <UserCheck className="size-4" />
+                                                    </div>
+                                                ) : user.contactRequest?.status === "pending" ? (
+                                                    // Request pending
+                                                    <div
+                                                        className="p-1.5 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-300"
+                                                        title="Request pending"
+                                                    >
+                                                        <Clock className="size-4" />
+                                                    </div>
+                                                ) : (
+                                                    // No request yet, show add button
+                                                    <button
+                                                        className="p-1.5 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-gray-500 dark:text-gray-100 dark:hover:bg-gray-800 transition-colors hover:cursor-pointer"
+                                                        onClick={() => handleRequestContact(user._id, user)}
+                                                        title="Add contact"
+                                                    >
+                                                        <UserPlus2Icon className="size-4" />
+                                                    </button>
+                                                )}
+
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center pt-6">
+                                        <p className="text-base-content/60">No Other Users</p>
+                                        <button
+                                            onClick={() => {
+                                                setShowModal(false);
+                                                setShowInviteModal(true);
+                                            }}
+                                            className="btn btn-small btn-secondary rounded-lg px-4 text-medium font-medium hover:opacity-90 items-center justify-center gap-1 py-2 mt-3"
+                                        >
+                                            <MailPlus className="w-4 h-4" />
+                                            <span className="hidden lg:inline">Invite</span>
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
             )}
+
 
 
             {/* Contact Requests Modal */}
