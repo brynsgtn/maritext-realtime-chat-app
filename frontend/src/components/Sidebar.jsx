@@ -368,8 +368,14 @@ import {
     Bell,
     CheckCircle2,
     XCircle,
-    User2
+    User2,
+    UserPlus2Icon,
+    MailPlus
 } from "lucide-react";
+import dayjs from "dayjs";
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
 import { Link } from "react-router-dom";
 
 // Mock data for testing
@@ -541,6 +547,66 @@ const MOCK_CONTACTS = [
     }
 ];
 
+const MOCK_USERS = [
+    // {
+    //     _id: "68150253e883886f43e1f630",
+    //     email: "bryansuguitan17@gmail.com",
+    //     username: "bengbang17",
+    //     profilePic: "https://res.cloudinary.com/deb0bujsu/image/upload/v1747098618/pymjyuilodbmtfnltj5q.jpg",
+    //     isVerified: true,
+    //     createdAt: "2025-05-02T17:35:15.854Z",
+    //     updatedAt: "2025-05-17T21:26:53.265Z",
+    //     lastLogin: "2025-05-17T21:26:53.265Z",
+    //     __v: 0
+    // },
+    // {
+    //     _id: "68150253e883886f43e1f631",
+    //     email: "janedoe@example.com",
+    //     username: "jane_doe",
+    //     profilePic: "https://i.pravatar.cc/150?img=20",
+    //     isVerified: true,
+    //     createdAt: "2025-05-03T14:20:10.854Z",
+    //     updatedAt: "2025-05-15T18:00:00.000Z",
+    //     lastLogin: "2025-05-15T18:00:00.000Z",
+    //     __v: 0
+    // },
+    // {
+    //     _id: "68150253e883886f43e1f632",
+    //     email: "johnsmith@example.com",
+    //     username: "johnny_smith",
+    //     profilePic: "https://i.pravatar.cc/150?img=21",
+    //     isVerified: false,
+    //     createdAt: "2025-04-28T11:00:00.000Z",
+    //     updatedAt: "2025-05-12T09:00:00.000Z",
+    //     lastLogin: "2025-05-12T09:00:00.000Z",
+    //     __v: 0
+    // },
+    // {
+    //     _id: "68150253e883886f43e1f633",
+    //     email: "alicej@example.com",
+    //     username: "alicej",
+    //     profilePic: "https://i.pravatar.cc/150?img=22",
+    //     isVerified: true,
+    //     createdAt: "2025-05-01T08:15:30.854Z",
+    //     updatedAt: "2025-05-17T10:45:00.000Z",
+    //     lastLogin: "2025-05-17T10:45:00.000Z",
+    //     __v: 0
+    // },
+    // {
+    //     _id: "68150253e883886f43e1f634",
+    //     email: "michael.lee@example.com",
+    //     username: "mikelee",
+    //     profilePic: "https://i.pravatar.cc/150?img=23",
+    //     isVerified: false,
+    //     createdAt: "2025-05-04T19:30:00.000Z",
+    //     updatedAt: "2025-05-14T16:20:00.000Z",
+    //     lastLogin: "2025-05-14T16:20:00.000Z",
+    //     __v: 0
+    // }
+];
+
+
+
 // Example contact requests
 const MOCK_REQUESTS = [
     {
@@ -585,7 +651,10 @@ const Sidebar = () => {
         contacts: storeContacts,
         selectedUser,
         setSelectedUser,
-        isUsersLoading
+        isUsersLoading,
+        isContactLoading,
+        getAllUsers,
+        users: allUsers
     } = useChatStore();
 
     const [filterStatus, setFilterStatus] = useState("all"); // "all", "online", "offline"
@@ -593,9 +662,13 @@ const Sidebar = () => {
     const [showModal, setShowModal] = useState(false);
     const [showRequestsModal, setShowRequestsModal] = useState(false);
     const [useMockData, setUseMockData] = useState(true); // Set to false in production
+    const [useMockUsers, setMockUsers] = useState(true); // Set to false in production
     const [pendingRequestCount, setPendingRequestCount] = useState(MOCK_REQUESTS.length);
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [inviteEmail, setInviteEmail] = useState("");
 
     const contacts = useMockData ? MOCK_CONTACTS : storeContacts;
+    const users = useMockUsers ? MOCK_USERS : allUsers.users;
 
     // Filter contacts based on status and search query
     const filteredContacts = contacts.filter((contact) => {
@@ -610,10 +683,12 @@ const Sidebar = () => {
     });
 
     useEffect(() => {
-        if (!useMockData) {
+        if (!useMockData || !useMockUsers) {
             getUserContacts();
+            getAllUsers();
         }
-    }, [getUserContacts, useMockData]);
+        console.log(users.users)
+    }, [getUserContacts, useMockData, getAllUsers]);
 
     const toggleMockData = () => {
         setUseMockData(!useMockData);
@@ -622,7 +697,20 @@ const Sidebar = () => {
         }
     };
 
-    if (isUsersLoading && !useMockData) return <SidebarSkeleton />;
+    const toggleMockUsers = () => {
+        setMockUsers(!useMockUsers);
+        if (!useMockUsers) {
+            getAllUsers();
+        }
+        console.log("All users: ", users)
+    };
+
+    const handleRequestContact = () => {
+        console.log("Clicked handleRequestContact!")
+        alert("handleRequestContact")
+    }
+
+    if (isContactLoading && !useMockData) return <SidebarSkeleton />;
 
     return (
         <>
@@ -638,11 +726,11 @@ const Sidebar = () => {
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setShowRequestsModal(true)}
-                                className="relative p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                className="relative p-1.5 rounded-full transition-colors hover:cursor-pointer"
                             >
-                                <Bell className="size-5 text-gray-600 dark:text-gray-400" />
+                                <Bell className="size-5 text-gray-600 dark:text-gray-900" />
                                 {pendingRequestCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-red-500 text-primary text-xs rounded-full size-5 flex items-center justify-center">
+                                    <span className="absolute -top-1 -right-1 bg-error text-primary-content text-xs rounded-full size-5 flex items-center justify-center">
                                         {pendingRequestCount}
                                     </span>
                                 )}
@@ -794,14 +882,22 @@ const Sidebar = () => {
                     )}
                 </div>
 
-                {/* Add Contact Button at Bottom */}
-                <div className="mt-auto border-t border-base-300 p-3">
+                {/* Add Contact and Invite Button */}
+                <div className="mt-auto border-t border-base-300 py-3 flex justify-between md:px-2">
                     <button
                         onClick={() => setShowModal(true)}
-                        className="btn btn-sm btn-primary rounded-lg px-3 text-xs font-medium hover:opacity-90 w-full flex items-center justify-center gap-2 py-2"
+                        className="btn btn-xs btn-primary rounded-lg px-2 text-xs font-small hover:opacity-90 flex items-center justify-center gap-1 py-2"
                     >
                         <PlusCircle className="w-4 h-4" />
-                        <span className="hidden lg:inline">Add New Contact</span>
+                        <span className="hidden lg:inline">Add</span>
+                    </button>
+
+                    <button
+                        onClick={() => setShowInviteModal(true)}
+                        className="btn btn-xs btn-secondary rounded-lg px-2 text-xs font-small hover:opacity-90 flex items-center justify-center gap-1 py-2"
+                    >
+                        <MailPlus className="w-4 h-4" />
+                        <span className="hidden lg:inline">Invite</span>
                     </button>
                 </div>
 
@@ -814,67 +910,96 @@ const Sidebar = () => {
                     onClick={() => setShowModal(false)}
                     role="dialog"
                     aria-modal="true"
-                    aria-labelledby="add-contact-title"
+                    aria-labelledby="contact-requests-title"
                 >
                     <div
                         className="bg-base-100 dark:bg-base-900 p-6 rounded-xl shadow-lg w-[90%] max-w-md relative"
                         onClick={(e) => e.stopPropagation()}
                     >
+                        {/* Close Button */}
                         <button
                             className="absolute top-3 right-3 text-gray-500 hover:text-error p-1 transition-colors"
                             onClick={() => setShowModal(false)}
-                            aria-label="Close add contact modal"
+                            aria-label="Close contact requests modal"
                         >
                             <X className="w-5 h-5" />
                         </button>
 
-                        <h2
-                            id="add-contact-title"
-                            className="text-xl font-semibold mb-4 text-base-content"
-                        >
-                            Add New Contact
+                        {/* Modal Title */}
+                        <h2 id="contact-requests-title" className="text-xl font-semibold mb-4 text-base-content">
+                            Add Contact
                         </h2>
 
-                        <form className="space-y-4">
-                            <div>
-                                <label
-                                    htmlFor="contact-username"
-                                    className="block text-sm font-medium text-base-content/80 mb-1"
-                                >
-                                    Username or Email
+                        {/* Dev: Toggle test/mock data */}
+                        {process.env.NODE_ENV !== "production" && (
+                            <div className="mt-2 hidden lg:flex items-center gap-2">
+                                <label className="cursor-pointer flex items-center gap-2 select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={useMockUsers}
+                                        onChange={toggleMockUsers}
+                                        className="checkbox checkbox-xs"
+                                    />
+                                    <span className="text-xs text-base-content/60">Use test data</span>
                                 </label>
-                                <input
-                                    id="contact-username"
-                                    type="text"
-                                    className="w-full px-4 py-2 rounded-lg border border-base-300 dark:border-base-700 bg-base-100 dark:bg-base-800 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-                                    placeholder="Enter username or email"
-                                />
                             </div>
+                        )}
 
-                            <div>
-                                <label
-                                    htmlFor="contact-message"
-                                    className="block text-sm font-medium text-base-content/80 mb-1"
-                                >
-                                    Message (optional)
-                                </label>
-                                <textarea
-                                    id="contact-message"
-                                    className="w-full px-4 py-2 rounded-lg border border-base-300 dark:border-base-700 bg-base-100 dark:bg-base-800 focus:outline-none focus:ring-2 focus:ring-primary transition-colors resize-none"
-                                    placeholder="Add a message to your request"
-                                    rows={3}
-                                />
+                        {/* User List */}
+                        {users.length > 0 ? (
+                            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                                {users.map(request => (
+                                    <div
+                                        key={request._id}
+                                        className="flex items-center gap-3 p-3 border border-base-300 dark:border-base-700 rounded-lg bg-base-200 dark:bg-base-800"
+                                    >
+                                        <div className="size-12 rounded-full overflow-hidden flex-shrink-0">
+                                            {request.profilePic ? (
+                                                <img src={request.profilePic} alt={request.username} className="size-12 object-cover" />
+                                            ) : (
+                                                <div className="size-12 flex items-center justify-center bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
+                                                    <User2 className="size-6" />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-medium truncate text-base-content">
+                                                {request.username}
+                                            </div>
+                                            <div className="text-xs text-base-content/60 italic">
+                                                <span className="inline-block bg-base-300 dark:bg-base-700 px-2 py-0.5 rounded-full">
+                                                    Joined {dayjs(request.createdAt).fromNow()}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-1">
+                                            <button
+                                                className="p-1.5 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-gray-500 dark:text-gray-100 dark:hover:bg-gray-800 transition-colors hover:cursor-pointer"
+                                                onClick={handleRequestContact}
+                                            >
+                                                <UserPlus2Icon className="size-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-
-                            <div className="pt-2">
+                        ) : (
+                            <div className="text-center pt-6">
+                                <p className="text-base-content/60">No Other Users</p>
                                 <button
-                                    type="submit"
-                                    className="w-full btn btn-primary rounded-lg text-white font-medium transition-colors"
+                                    onClick={() => {
+                                        setShowModal(false);
+                                        setShowInviteModal(true);
+                                    }}
+                                    className="btn btn-small btn-secondary rounded-lg px-4 text-medium font-medium hover:opacity-90 items-center justify-center gap-1 py-2 mt-3"
                                 >
-                                    Send Request
+                                    <MailPlus className="w-4 h-4" />
+                                    <span className="hidden lg:inline">Invite</span>
                                 </button>
                             </div>
-                        </form>
+                        )}
                     </div>
                 </div>
             )}
@@ -966,6 +1091,49 @@ const Sidebar = () => {
                     </div>
                 </div>
             )}
+
+            {/* Invite Other Users Modal */}
+            {showInviteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+                    onClick={() => setShowInviteModal(false)}
+                >
+                    <div className="bg-white dark:bg-base-100 p-6 rounded-xl shadow-xl w-[90%] max-w-md relative"
+                        onClick={(e) => e.stopPropagation()}>
+                        <button
+                            onClick={() => setShowInviteModal(false)}
+                            className="absolute top-2 right-2 btn btn-sm btn-circle btn-ghost"
+                        >
+                            ✕
+                        </button>
+
+                        <h3 className="text-lg font-semibold mb-4">Invite a Friend</h3>
+
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                console.log("Inviting:", email);
+                                setShowInviteModal(false);
+                            }}
+                        >
+                            <label className="label">
+                                <span className="label-text">Email address</span>
+                            </label>
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="friend@example.com"
+                                required
+                                className="input input-bordered w-full my-4"
+                            />
+
+                            <button type="submit" className="btn btn-primary w-full">
+                                Send Invite
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
 
         </>
     );
