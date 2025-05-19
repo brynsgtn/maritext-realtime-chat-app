@@ -35,6 +35,18 @@ export const useChatStore = create((set) => ({
         };
     },
 
+    getAllUsers : async () => {
+        set({ isUsersLoading: true});
+        try {
+            const res = await axiosInstance.get("/contacts/users");
+            set({ users: res.data });
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+        } finally {
+            set({ isMessagesLoading: false });
+        };
+    },
+
     // todo:optimize this later
     setSelectedUser: (selectedUser) => set({ selectedUser })
 }));
