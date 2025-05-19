@@ -12,7 +12,7 @@ import { protectRoute } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.get("/users", getAllUsers);
+router.get("/users", protectRoute, getAllUsers);
 router.post("/send-contact-request", protectRoute, sendContactRequest);
 router.get("/get-contact-requests", protectRoute, getContactRequests);
 router.post("/accept-contact-request", protectRoute, acceptContactRequest);
