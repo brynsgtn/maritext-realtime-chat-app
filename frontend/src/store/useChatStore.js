@@ -2,6 +2,7 @@ import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
 
+
 export const useChatStore = create((set) => ({
     messages: [],
     users: [],
@@ -10,6 +11,7 @@ export const useChatStore = create((set) => ({
     selectedUser: null,
     isUsersLoading: false,
     isMessagesLoading: false,
+    isSendingContactRequest: false,
 
     getUserContacts: async () => {
         set({ isContactsLoading: true });
@@ -43,9 +45,24 @@ export const useChatStore = create((set) => ({
         } catch (error) {
             toast.error(error?.response?.data?.message || error.message);
         } finally {
-            set({ isMessagesLoading: false });
+            set({ isUsersLoading: false });
         };
     },
+
+    sendContactRequest : async (recipientId) => {
+        set({ isSendingContactRequest: true});
+        try {
+             const res = await axiosInstance.post("/contacts/send-contact-request", { recipientId });
+             toast.success(res.data.message);
+             return true;
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+            return false;
+        } finally {
+             set({ isSendingContactRequest: false});
+        };
+    },
+
 
     // todo:optimize this later
     setSelectedUser: (selectedUser) => set({ selectedUser })
