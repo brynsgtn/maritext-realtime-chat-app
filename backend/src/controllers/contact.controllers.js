@@ -2,21 +2,58 @@ import User from "../models/user.model.js";
 import Contact from "../models/contact.model.js"
 
 export const getAllUsers = async (req, res) => {
-    try {
-        const users = await User.find({}).select("-password");;
+  try {
+    const requesterId = req.userId;
 
-        if (!users) return res.status(400).json({ message: "No users found" });
+    // Fetch all users except the requester
+    const users = await User.find({ _id: { $ne: requesterId } }).select("-password");
 
-        res.status(200).json({
-            sucess: true,
-            message: "Fetch successful",
-            users: users
-        });
-    } catch (error) {
-        console.log("error in getAllUsers controller", error);
-        res.status(500).json({ success: false, message: "Server error" });
+    if (!users || users.length === 0) {
+      return res.status(400).json({ success: false, message: "No users found" });
     }
+
+    // Extract all user IDs
+    const userIds = users.map(user => user._id);
+
+    // Find all contact requests where current user is requester or recipient and the other user is in the user list
+    const contacts = await Contact.find({
+      $or: [
+        { requester: requesterId, recipient: { $in: userIds } },
+        { recipient: requesterId, requester: { $in: userIds } }
+      ]
+    }).populate('requester', 'username email profilePic')
+      .populate('recipient', 'username email profilePic');
+
+    // Map users to include related contact request (if any)
+    const usersWithRequests = users.map(user => {
+      // Find the contact between current user and this user
+      const relatedContact = contacts.find(contact => 
+        (contact.requester._id.equals(requesterId) && contact.recipient._id.equals(user._id)) ||
+        (contact.recipient._id.equals(requesterId) && contact.requester._id.equals(user._id))
+      );
+
+      return {
+        ...user.toObject(),
+        contactRequest: relatedContact ? {
+          status: relatedContact.status,
+          requester: relatedContact.requester._id,
+          recipient: relatedContact.recipient._id,
+          contactId: relatedContact._id
+        } : null
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Fetch successful",
+      users: usersWithRequests,
+    });
+  } catch (error) {
+    console.error("error in getAllUsers controller", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 };
+
 
 export const sendContactRequest = async (req, res) => {
     try {
