@@ -1,358 +1,6 @@
-// import { useEffect, useState } from "react";
-// import { useChatStore } from "../store/useChatStore";
-// import { useAuthStore } from "../store/useAuthStore"
-// import SidebarSkeleton from "../skeletons/SidebarSkeleton";
-// import { Users, PlusCircle, X } from "lucide-react";
-// import { Link } from "react-router-dom";
-
-// // Mock data for testing
-// const MOCK_CONTACTS = [
-//     {
-//         _id: "c1",
-//         profilePic: "https://i.pravatar.cc/150?img=1",
-//         user: {
-//             _id: "u1",
-//             username: "Sarah Johnson",
-//             status: "online"
-//         }
-//     },
-//     {
-//         _id: "c2",
-//         profilePic: "https://i.pravatar.cc/150?img=2",
-//         user: {
-//             _id: "u2",
-//             username: "Michael Chen",
-//             status: "offline"
-//         }
-//     },
-//     {
-//         _id: "c3",
-//         profilePic: "https://i.pravatar.cc/150?img=3",
-//         user: {
-//             _id: "u3",
-//             username: "Alex Rodriguez",
-//             status: "online"
-//         }
-//     },
-//     {
-//         _id: "c4",
-//         profilePic: null,
-//         user: {
-//             _id: "u4",
-//             username: "Jordan Taylor",
-//             status: "offline"
-//         }
-//     },
-//     {
-//         _id: "c5",
-//         profilePic: "https://i.pravatar.cc/150?img=5",
-//         user: {
-//             _id: "u5",
-//             username: "Morgan Williams with a very long name that should truncate",
-//             status: "online"
-//         }
-//     },
-//     {
-//         _id: "c6",
-//         profilePic: "https://i.pravatar.cc/150?img=6",
-//         user: {
-//             _id: "u6",
-//             username: "Emily Davis",
-//             status: "online"
-//         }
-//     },
-//     {
-//         _id: "c7",
-//         profilePic: "https://i.pravatar.cc/150?img=7",
-//         user: {
-//             _id: "u7",
-//             username: "Daniel Martinez",
-//             status: "offline"
-//         }
-//     },
-//     {
-//         _id: "c8",
-//         profilePic: null,
-//         user: {
-//             _id: "u8",
-//             username: "Sophia Lee",
-//             status: "online"
-//         }
-//     },
-//     {
-//         _id: "c9",
-//         profilePic: "https://i.pravatar.cc/150?img=9",
-//         user: {
-//             _id: "u9",
-//             username: "James Anderson",
-//             status: "away"
-//         }
-//     },
-//     {
-//         _id: "c10",
-//         profilePic: "https://i.pravatar.cc/150?img=10",
-//         user: {
-//             _id: "u10",
-//             username: "Chloe Kim",
-//             status: "offline"
-//         }
-//     },
-//     {
-//         _id: "c11",
-//         profilePic: "https://i.pravatar.cc/150?img=11",
-//         user: {
-//             _id: "u11",
-//             username: "William Garcia",
-//             status: "online"
-//         }
-//     },
-//     {
-//         _id: "c12",
-//         profilePic: "https://i.pravatar.cc/150?img=12",
-//         user: {
-//             _id: "u12",
-//             username: "Ava Wilson",
-//             status: "busy"
-//         }
-//     },
-//     {
-//         _id: "c13",
-//         profilePic: null,
-//         user: {
-//             _id: "u13",
-//             username: "David Thomas",
-//             status: "offline"
-//         }
-//     },
-//     {
-//         _id: "c14",
-//         profilePic: "https://i.pravatar.cc/150?img=14",
-//         user: {
-//             _id: "u14",
-//             username: "Isabella Moore",
-//             status: "online"
-//         }
-//     },
-//     {
-//         _id: "c15",
-//         profilePic: "https://i.pravatar.cc/150?img=15",
-//         user: {
-//             _id: "u15",
-//             username: "Benjamin Jackson",
-//             status: "offline"
-//         }
-//     }
-// ];
 
 
-
-// const Sidebar = () => {
-//     const {
-//         getUserContacts,
-//         contacts: storeContacts,
-//         selectedUser,
-//         setSelectedUser,
-//         isUsersLoading
-//     } = useChatStore();
-
-//     const [showOnlineOnly, setShowOnlineOnly] = useState(false);
-//     const [showModal, setShowModal] = useState(false);
-//     const [useMockData, setUseMockData] = useState(true); // Set to false in production
-//     const [showRequests, setShowRequests] = useState(false);
-
-//     const contacts = useMockData
-//         ? MOCK_CONTACTS
-//         : storeContacts;
-
-//     const filteredContacts = showOnlineOnly
-//         ? contacts.filter((c) => c.user.status === "online")
-//         : contacts;
-
-//     useEffect(() => {
-//         if (!useMockData) {
-//             getUserContacts();
-//         }
-//     }, [getUserContacts, useMockData]);
-
-//     const toggleMockData = () => {
-//         setUseMockData(!useMockData);
-//         if (!useMockData) {
-//             getUserContacts();
-//         }
-//     };
-
-//     if (isUsersLoading && !useMockData) return <SidebarSkeleton />;
-
-//     return (
-//         <>
-//             <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
-//                 <div className="border-b border-base-300 w-full p-5">
-//                     <div className="flex items-center gap-2">
-//                         <Users className="size-6" />
-//                         <span className="font-medium hidden lg:block">Contacts</span>
-//                     </div>
-
-//                     {/* Dev: Toggle test/mock data */}
-//                     {process.env.NODE_ENV !== "production" && (
-//                         <div className="mt-2 hidden lg:flex items-center gap-2">
-//                             <label className="cursor-pointer flex items-center gap-2">
-//                                 <input
-//                                     type="checkbox"
-//                                     checked={useMockData}
-//                                     onChange={toggleMockData}
-//                                     className="checkbox checkbox-xs"
-//                                 />
-//                                 <span className="text-xs text-zinc-500">Use test data</span>
-//                             </label>
-//                         </div>
-//                     )}
-//                 </div>
-
-//                 <div className="overflow-y-auto w-full py-3">
-//                     {filteredContacts.length > 0 ? (
-//                         filteredContacts.map((contact) => (
-//                             <button
-//                                 key={contact._id}
-//                                 onClick={() => setSelectedUser(contact)}
-//                                 className={`
-//                   w-full p-3 flex items-center gap-3
-//                   hover:bg-base-300 transition-colors
-//                   ${selectedUser?._id === contact._id
-//                                         ? "bg-base-300 ring-1 ring-base-300"
-//                                         : ""
-//                                     }
-//                 `}
-//                             >
-//                                 <div className="relative mx-auto lg:mx-0">
-//                                     <img
-//                                         src={contact.profilePic || "/avatar.png"}
-//                                         alt={contact.user.username}
-//                                         className="size-12 object-cover rounded-full"
-//                                     />
-//                                     {contact.user.status === "online" && (
-//                                         <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-base-300" />
-//                                     )}
-//                                 </div>
-
-//                                 <div className="hidden lg:block text-left min-w-0 flex-1">
-//                                     <div className="font-medium truncate">
-//                                         {contact.user.username}
-//                                     </div>
-//                                     <div className="text-xs text-zinc-400">
-//                                         {contact.user.status}
-//                                     </div>
-//                                 </div>
-//                             </button>
-//                         ))
-//                     ) : (
-//                         <div className="text-center py-4 px-3">
-//                             <p className="text-sm text-gray-500 mb-2">
-//                                 {showOnlineOnly
-//                                     ? "No online contacts available."
-//                                     : "No contacts found."}
-//                             </p>
-//                             <button
-//                                 onClick={() => setShowModal(true)}
-//                                 className="btn btn-sm btn-outline btn-primary rounded-full px-3 text-xs font-medium"
-//                             >
-//                                 <PlusCircle className="size-4 lg:mr-1" />
-//                                 <span className="hidden lg:inline">Add Contacts</span>
-//                             </button>
-//           <button
-//             onClick={() => setShowRequests(true)}
-//             className="btn btn-sm btn-outline btn-primary rounded-full px-3 text-xs font-medium"
-//           >
-//             <Users className="size-4 lg:mr-1" />
-//             <span className="hidden lg:inline">View Requests</span>
-//           </button>
-//                         </div>
-//                     )}
-//                 </div>
-
-//                 {/* Add Contact Button at Bottom */}
-//                 <div className="mt-auto border-t border-base-300 p-4 text-center">
-//                     <button
-//                         onClick={() => setShowModal(true)}
-//                         className="btn btn-sm btn-outline btn-primary rounded-full px-3 text-xs font-medium hover:text-white w-full lg:w-auto"
-//                     >
-//                         <PlusCircle className="size-4 lg:mr-1" />
-//                         <span className="hidden lg:inline">Add Contacts</span>
-//                     </button>
-//                 </div>
-//             </aside>
-
-//             {/* Modal */}
-//             {showModal && (
-//                 <div
-//                     className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
-//                     onClick={() => setShowModal(false)}
-//                 >
-//                     <div
-//                         className="bg-white dark:bg-base-200 p-6 rounded-lg shadow-lg w-[90%] max-w-md relative"
-//                         onClick={(e) => e.stopPropagation()}
-//                     >
-//                         <button
-//                             className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
-//                             onClick={() => setShowModal(false)}
-//                         >
-//                             <X className="w-5 h-5" />
-//                         </button>
-//                         <h2 className="text-lg font-semibold mb-4">Add New Contact</h2>
-//                         <p className="text-sm text-gray-600">
-//                             This is where your add contact form or content goes.
-//                         </p>
-//                     </div>
-//                 </div>
-//             )}
-
-
-//             {/* Contact Requests Modal */}
-//             {showRequests && (
-//                 <div
-//                     className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
-//                     onClick={() => setShowRequests(false)}
-//                 >
-//                     <div
-//                         className="bg-white dark:bg-base-200 p-6 rounded-lg shadow-lg w-[90%] max-w-md relative"
-//                         onClick={(e) => e.stopPropagation()}
-//                     >
-//                         <button
-//                             className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
-//                             onClick={() => setShowRequests(false)}
-//                         >
-//                             <X className="w-5 h-5" />
-//                         </button>
-//                         <h2 className="text-lg font-semibold mb-4">Contact Requests</h2>
-
-//                         <div className="space-y-3">
-//                             {/* Dummy contact request */}
-//                             <div className="flex justify-between items-center p-2 border rounded dark:border-gray-600">
-//                                 <span className="text-sm">Jane Doe wants to connect</span>
-//                                 <div className="flex gap-1">
-//                                     <button className="btn btn-xs btn-success">Accept</button>
-//                                     <button className="btn btn-xs btn-error">Decline</button>
-//                                 </div>
-//                             </div>
-
-//                             <div className="flex justify-between items-center p-2 border rounded dark:border-gray-600">
-//                                 <span className="text-sm">John Smith sent a request</span>
-//                                 <div className="flex gap-1">
-//                                     <button className="btn btn-xs btn-success">Accept</button>
-//                                     <button className="btn btn-xs btn-error">Decline</button>
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 </div>
-//             )}
-//         </>
-//     );
-// };
-
-// export default Sidebar;
-
-
-// todo: add contact modal, view request modal, chat container
+// todo: add contact modal (icon update - this should be in socket io), view request modal, chat container
 
 
 import { useEffect, useState } from "react";
@@ -372,7 +20,8 @@ import {
     UserPlus2Icon,
     MailPlus,
     Loader2,
-    Clock
+    Clock,
+    UserCheck
 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -607,32 +256,93 @@ const MOCK_USERS = [
     // }
 ];
 
-
-
-// Example contact requests
 const MOCK_REQUESTS = [
     {
-        _id: "r1",
-        profilePic: "https://i.pravatar.cc/150?img=20",
-        username: "Jane Doe",
-        mutualConnections: 3,
-        requestDate: "2 days ago"
+        _id: "682cdd848bd972c98dda0aab",
+        createdAt: "2025-05-20T19:52:36.666Z",
+        updatedAt: "2025-05-20T19:52:36.666Z",
+        status: "pending",
+        recipient: "68150253e883886f43e1f630",
+        requester: {
+            _id: "6819994942cebc37897f82f5",
+            email: "bryanquicker@gmail.com",
+            username: "bengbang",
+            profilePic: ""
+        },
+        __v: 0
     },
     {
-        _id: "r2",
-        profilePic: "https://i.pravatar.cc/150?img=21",
-        username: "John Smith",
-        mutualConnections: 1,
-        requestDate: "5 hours ago"
+        _id: "682cdd848bd972c98dda0aac",
+        createdAt: "2025-05-21T10:15:12.001Z",
+        updatedAt: "2025-05-21T10:15:12.001Z",
+        status: "accepted",
+        recipient: "68150253e883886f43e1f631",
+        requester: {
+            _id: "6819994942cebc37897f82f6",
+            email: "john@example.com",
+            username: "johnnydev",
+            profilePic: ""
+        },
+        __v: 0
     },
     {
-        _id: "r3",
-        profilePic: null,
-        username: "Anna Williams",
-        mutualConnections: 5,
-        requestDate: "Just now"
+        _id: "682cdd848bd972c98dda0aad",
+        createdAt: "2025-05-22T08:45:00.333Z",
+        updatedAt: "2025-05-22T08:45:00.333Z",
+        status: "declined",
+        recipient: "68150253e883886f43e1f632",
+        requester: {
+            _id: "6819994942cebc37897f82f7",
+            email: "alice@example.com",
+            username: "alicetech",
+            profilePic: ""
+        },
+        __v: 0
+    },
+    {
+        _id: "682cdd848bd972c98dda0aae",
+        createdAt: "2025-05-23T14:30:20.789Z",
+        updatedAt: "2025-05-23T14:30:20.789Z",
+        status: "pending",
+        recipient: "68150253e883886f43e1f633",
+        requester: {
+            _id: "6819994942cebc37897f82f8",
+            email: "maria@example.com",
+            username: "mariabuilds",
+            profilePic: ""
+        },
+        __v: 0
+    },
+    {
+        _id: "682cdd848bd972c98dda0aaf",
+        createdAt: "2025-05-24T16:00:00.000Z",
+        updatedAt: "2025-05-24T16:00:00.000Z",
+        status: "accepted",
+        recipient: "68150253e883886f43e1f634",
+        requester: {
+            _id: "6819994942cebc37897f82f9",
+            email: "leo@example.com",
+            username: "leocoder",
+            profilePic: ""
+        },
+        __v: 0
+    },
+    {
+        _id: "682cdd848bd972c98dda0aba",
+        createdAt: "2025-05-25T09:10:45.123Z",
+        updatedAt: "2025-05-25T09:10:45.123Z",
+        status: "pending",
+        recipient: "68150253e883886f43e1f635",
+        requester: {
+            _id: "6819994942cebc37897f82fa",
+            email: "nina@example.com",
+            username: "ninabyte",
+            profilePic: ""
+        },
+        __v: 0
     }
 ];
+
 
 const StatusBadge = ({ status }) => {
     const statusColors = {
@@ -658,7 +368,12 @@ const Sidebar = () => {
         getAllUsers,
         users: allUsers,
         sendContactRequest,
-        isSendingContactRequest
+        isSendingContactRequest,
+        isGettingContactRequests,
+        getContactRequests,
+        contactRequests,
+        acceptContactRequest,
+        isAcceptingContact
     } = useChatStore();
 
     const [filterStatus, setFilterStatus] = useState("all"); // "all", "online", "offline"
@@ -667,12 +382,15 @@ const Sidebar = () => {
     const [showRequestsModal, setShowRequestsModal] = useState(false);
     const [useMockData, setUseMockData] = useState(true); // Set to false in production
     const [useMockUsers, setMockUsers] = useState(true); // Set to false in production
-    const [pendingRequestCount, setPendingRequestCount] = useState(MOCK_REQUESTS.length);
+    const [useMockRequests, setMockRequests] = useState(false); // Set to false in production
+
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState("");
 
     const contacts = useMockData ? MOCK_CONTACTS : storeContacts;
     const users = useMockUsers ? MOCK_USERS : allUsers.users;
+    const contactRequestsList = useMockRequests ? MOCK_REQUESTS : contactRequests.requests;
+    const [pendingRequestCount, setPendingRequestCount] = useState(contactRequestsList?.length || 0);
 
     // Filter contacts based on status and search query
     const filteredContacts = contacts.filter((contact) => {
@@ -687,11 +405,28 @@ const Sidebar = () => {
     });
 
     useEffect(() => {
+        if (contactRequests) {
+            console.log(contactRequests)
+            console.log("Updated contactRequests:", contactRequestsList);
+        }
 
-            getUserContacts();
-            getAllUsers();
-        console.log(users.users)
-    }, [getUserContacts, useMockData, getAllUsers]);
+        if (users) {
+            console.log("Updated users: ", users)
+        }
+    }, [contactRequests, users]);
+
+    useEffect(() => {
+        const currentRequests = useMockRequests ? MOCK_REQUESTS : contactRequests?.requests || [];
+
+        const pendingCount = currentRequests.filter(req => req.status === "pending").length;
+        setPendingRequestCount(pendingCount);
+    }, [useMockRequests, contactRequests]);
+
+    useEffect(() => {
+        getContactRequests();
+        getAllUsers();
+        getUserContacts();
+    }, [getUserContacts, useMockData, getAllUsers, getContactRequests,isAcceptingContact, isSendingContactRequest]);
 
     const toggleMockData = () => {
         setUseMockData(!useMockData);
@@ -708,9 +443,23 @@ const Sidebar = () => {
         console.log(users)
     };
 
+    const toggleMockRequests = () => {
+        setMockRequests(!useMockRequests);
+        if (!useMockRequests) {
+            getContactRequests();
+        }
+        console.log(contactRequests)
+    };
+
+
     const handleRequestContact = (recipientId, user) => {
         sendContactRequest(recipientId)
         console.log(user)
+    };
+
+    const handleAcceptContactRequest = (requesterId) => {
+        acceptContactRequest(requesterId)
+        console.log(requesterId)
     };
 
     if (isContactLoading && !useMockData) return <SidebarSkeleton />;
@@ -1034,8 +783,6 @@ const Sidebar = () => {
                 </div>
             )}
 
-
-
             {/* Contact Requests Modal */}
             {showRequestsModal && (
                 <div
@@ -1064,9 +811,24 @@ const Sidebar = () => {
                             Contact Requests
                         </h2>
 
-                        {MOCK_REQUESTS.length > 0 ? (
+                        {/* Dev: Toggle test/mock data */}
+                        {process.env.NODE_ENV !== "production" && (
+                            <div className="mt-2 hidden lg:flex items-center gap-2">
+                                <label className="cursor-pointer flex items-center gap-2 select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={useMockRequests}
+                                        onChange={toggleMockRequests}
+                                        className="checkbox checkbox-xs"
+                                    />
+                                    <span className="text-xs text-base-content/60">Use test data</span>
+                                </label>
+                            </div>
+                        )}
+
+                        {Array.isArray(contactRequestsList) && contactRequestsList.length > 0 ? (
                             <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-                                {MOCK_REQUESTS.map(request => (
+                                {contactRequestsList.map(request => (
                                     <div
                                         key={request._id}
                                         className="flex items-center gap-3 p-3 border border-base-300 dark:border-base-700 rounded-lg bg-base-200 dark:bg-base-800"
@@ -1074,8 +836,8 @@ const Sidebar = () => {
                                         <div className="size-12 rounded-full overflow-hidden flex-shrink-0">
                                             {request.profilePic ? (
                                                 <img
-                                                    src={request.profilePic}
-                                                    alt={request.username}
+                                                    src={request.requester.profilePic}
+                                                    alt={request.requester.username}
                                                     className="size-12 object-cover"
                                                 />
                                             ) : (
@@ -1087,26 +849,24 @@ const Sidebar = () => {
 
                                         <div className="flex-1 min-w-0">
                                             <div className="font-medium truncate text-base-content">
-                                                {request.username}
-                                            </div>
-                                            <div className="text-xs text-base-content/70">
-                                                {request.mutualConnections} mutual connection{request.mutualConnections !== 1 ? 's' : ''}
+                                                {request.requester.username}
                                             </div>
                                             <div className="text-xs text-base-content/50">
-                                                Requested {request.requestDate}
+                                                Requested {dayjs(request.createdAt).fromNow()}
                                             </div>
                                         </div>
 
                                         <div className="flex flex-col gap-1">
                                             <button
                                                 className="p-1.5 rounded-full bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 transition-colors"
-                                                aria-label={`Accept request from ${request.username}`}
+                                                aria-label={`Accept request from ${request.requester.username}`}
+                                                onClick={() => handleAcceptContactRequest(request.requester._id)}
                                             >
                                                 <CheckCircle2 className="size-5" />
                                             </button>
                                             <button
                                                 className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800 transition-colors"
-                                                aria-label={`Decline request from ${request.username}`}
+                                                aria-label={`Decline request from ${request.requester.username}`}
                                             >
                                                 <XCircle className="size-5" />
                                             </button>
