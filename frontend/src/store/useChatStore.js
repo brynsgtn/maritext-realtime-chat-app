@@ -12,6 +12,9 @@ export const useChatStore = create((set) => ({
     isUsersLoading: false,
     isMessagesLoading: false,
     isSendingContactRequest: false,
+    isGettingContactRequests: false,
+    contactRequests: [],
+    isAcceptingContact: false,
 
     getUserContacts: async () => {
         set({ isContactsLoading: true });
@@ -37,8 +40,8 @@ export const useChatStore = create((set) => ({
         };
     },
 
-    getAllUsers : async () => {
-        set({ isUsersLoading: true});
+    getAllUsers: async () => {
+        set({ isUsersLoading: true });
         try {
             const res = await axiosInstance.get("/contacts/users");
             set({ users: res.data });
@@ -49,20 +52,46 @@ export const useChatStore = create((set) => ({
         };
     },
 
-    sendContactRequest : async (recipientId) => {
-        set({ isSendingContactRequest: true});
+    sendContactRequest: async (recipientId) => {
+        set({ isSendingContactRequest: true });
         try {
-             const res = await axiosInstance.post("/contacts/send-contact-request", { recipientId });
-             toast.success(res.data.message);
-             return true;
+            const res = await axiosInstance.post("/contacts/send-contact-request", { recipientId });
+            toast.success(res.data.message);
+            return true;
         } catch (error) {
             toast.error(error?.response?.data?.message || error.message);
             return false;
         } finally {
-             set({ isSendingContactRequest: false});
+            set({ isSendingContactRequest: false });
         };
     },
 
+    getContactRequests: async () => {
+        set({ isGettingContactRequests: true });
+        try {
+            const res = await axiosInstance.get("/contacts/get-contact-requests");
+            console.log(res.data)
+            set({ contactRequests: res.data });
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+        } finally {
+            set({ isGettingContactRequests: false });
+        };
+    },
+
+    acceptContactRequest: async (requesterId) => {
+        set({ isAcceptingContact: true });
+        try {
+            const res = await axiosInstance.post("/contacts/accept-contact-request", { requesterId });
+            toast.success(res.data.message);
+            return true;
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+            return false;
+        } finally {
+            set({ isAcceptingContact: false });
+        };
+    },
 
     // todo:optimize this later
     setSelectedUser: (selectedUser) => set({ selectedUser })
