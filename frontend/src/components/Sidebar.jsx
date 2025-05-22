@@ -1,6 +1,6 @@
 
 
-// todo: add contact modal (fetch contact loader or skeleton), view request modal (loader skeleton), chat container
+// todo: view request modal (loader skeleton), invite use, chat container
 
 
 import { useEffect, useState } from "react";
@@ -395,6 +395,8 @@ const Sidebar = () => {
     const contactRequestsList = useMockRequests ? MOCK_REQUESTS : contactRequests.requests;
     const [pendingRequestCount, setPendingRequestCount] = useState(contactRequestsList?.length || 0);
 
+    // const isGettingContactRequests = true
+
     // Filter contacts based on status and search query
     const filteredContacts = contacts.filter((contact) => {
         const matchesStatus =
@@ -669,8 +671,8 @@ const Sidebar = () => {
             </aside>
 
             {/* Add Contact Modal */}
-            {showModal && ( 
-                 <div
+            {showModal && (
+                <div
                     className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center backdrop-blur-sm"
                     onClick={() => setShowModal(false)}
                     role="dialog"
@@ -792,7 +794,7 @@ const Sidebar = () => {
                         )}
                     </div>
                 </div>
-               
+
             )}
 
             {/* Contact Requests Modal */}
@@ -823,75 +825,83 @@ const Sidebar = () => {
                             Contact Requests
                         </h2>
 
-                        {/* Dev: Toggle test/mock data */}
-                        {process.env.NODE_ENV !== "production" && (
-                            <div className="mt-2 hidden lg:flex items-center gap-2">
-                                <label className="cursor-pointer flex items-center gap-2 select-none">
-                                    <input
-                                        type="checkbox"
-                                        checked={useMockRequests}
-                                        onChange={toggleMockRequests}
-                                        className="checkbox checkbox-xs"
-                                    />
-                                    <span className="text-xs text-base-content/60">Use test data</span>
-                                </label>
-                            </div>
-                        )}
-
-                        {Array.isArray(contactRequestsList) && contactRequestsList.length > 0 ? (
-                            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-                                {contactRequestsList.map(request => (
-                                    <div
-                                        key={request._id}
-                                        className="flex items-center gap-3 p-3 border border-base-300 dark:border-base-700 rounded-lg bg-base-200 dark:bg-base-800"
-                                    >
-                                        <div className="size-12 rounded-full overflow-hidden flex-shrink-0">
-                                            {request.profilePic ? (
-                                                <img
-                                                    src={request.requester.profilePic}
-                                                    alt={request.requester.username}
-                                                    className="size-12 object-cover"
-                                                />
-                                            ) : (
-                                                <div className="size-12 flex items-center justify-center bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
-                                                    <User2 className="size-6" />
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-medium truncate text-base-content">
-                                                {request.requester.username}
-                                            </div>
-                                            <div className="text-xs text-base-content/50">
-                                                Requested {dayjs(request.createdAt).fromNow()}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-col gap-1">
-                                            <button
-                                                className="p-1.5 rounded-full bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 transition-colors hover:cursor-pointer"
-                                                aria-label={`Accept request from ${request.requester.username}`}
-                                                onClick={() => handleAcceptContactRequest(request.requester._id)}
-                                            >
-                                                <CheckCircle2 className="size-5" />
-                                            </button>
-                                            <button
-                                                className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800 transition-colors hover:cursor-pointer"
-                                                aria-label={`Decline request from ${request.requester.username}`}
-                                                onClick={() => handleDeclineContactRequest(request.requester._id)}
-                                            >
-                                                <XCircle className="size-5" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                        {(!useMockRequests && (isGettingContactRequests)) ? (
+                            <ModalSkeleton />
                         ) : (
-                            <div className="text-center py-6">
-                                <p className="text-base-content/60">No pending requests</p>
-                            </div>
+                            <>
+                                {/* Dev: Toggle test/mock data */}
+                                {process.env.NODE_ENV !== "production" && (
+                                    <div className="mt-2 hidden lg:flex items-center gap-2">
+                                        <label className="cursor-pointer flex items-center gap-2 select-none">
+                                            <input
+                                                type="checkbox"
+                                                checked={useMockRequests}
+                                                onChange={toggleMockRequests}
+                                                className="checkbox checkbox-xs"
+                                            />
+                                            <span className="text-xs text-base-content/60">Use test data</span>
+                                        </label>
+                                    </div>
+                                )}
+
+                                {Array.isArray(contactRequestsList) && contactRequestsList.length > 0 ? (
+                                    <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                                        {contactRequestsList.map(request => (
+                                            <div
+                                                key={request._id}
+                                                className="flex items-center gap-3 p-3 border border-base-300 dark:border-base-700 rounded-lg bg-base-200 dark:bg-base-800"
+                                            >
+                                                <div className="size-12 rounded-full overflow-hidden flex-shrink-0">
+                                                    {request.profilePic ? (
+                                                        <img
+                                                            src={request.requester.profilePic}
+                                                            alt={request.requester.username}
+                                                            className="size-12 object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="size-12 flex items-center justify-center bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
+                                                            <User2 className="size-6" />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-medium truncate text-base-content">
+                                                        {request.requester.username}
+                                                    </div>
+                                                    <div className="text-xs text-base-content/50">
+                                                        Requested {dayjs(request.createdAt).fromNow()}
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex flex-col gap-1">
+                                                    <button
+                                                        className="p-1.5 rounded-full bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 transition-colors hover:cursor-pointer"
+                                                        aria-label={`Accept request from ${request.requester.username}`}
+                                                        onClick={() => handleAcceptContactRequest(request.requester._id)}
+                                                    >
+                                                        <CheckCircle2 className="size-5" />
+                                                    </button>
+                                                    <button
+                                                        className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800 transition-colors hover:cursor-pointer"
+                                                        aria-label={`Decline request from ${request.requester.username}`}
+                                                        onClick={() => handleDeclineContactRequest(request.requester._id)}
+                                                    >
+                                                        <XCircle className="size-5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-6">
+                                        <p className="text-base-content/60">No pending requests</p>
+                                    </div>
+                                )}
+                            </>
                         )}
+
+
                     </div>
                 </div>
             )}
