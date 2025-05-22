@@ -1,6 +1,6 @@
 
 
-// todo: add contact modal (fetch contact loader or skeleton), view request modal (decline request, loader skeleton), chat container
+// todo: add contact modal (fetch contact loader or skeleton), view request modal (loader skeleton), chat container
 
 
 import { useEffect, useState } from "react";
@@ -28,6 +28,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(relativeTime);
 import { Link } from "react-router-dom";
+import ModalSkeleton from "./skeletons/ModalSkeleton";
 
 // Mock data for testing
 const MOCK_CONTACTS = [
@@ -668,8 +669,8 @@ const Sidebar = () => {
             </aside>
 
             {/* Add Contact Modal */}
-            {showModal && (
-                <div
+            {showModal && ( 
+                 <div
                     className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center backdrop-blur-sm"
                     onClick={() => setShowModal(false)}
                     role="dialog"
@@ -694,10 +695,8 @@ const Sidebar = () => {
                             Add Contact
                         </h2>
 
-                        {isUsersLoading ? (
-                            <div className="flex justify-center items-center h-40">
-                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                            </div>
+                        {(!useMockData && (isUsersLoading)) ? (
+                            <ModalSkeleton />
                         ) : (
                             <>
                                 {/* Dev: Toggle test/mock data */}
@@ -734,7 +733,7 @@ const Sidebar = () => {
                                                 </div>
 
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="font-medium truncate text-base-content">
+                                                    <div className="font-medium truncate text-base-content mb-2">
                                                         {user.username}
                                                     </div>
                                                     <div className="text-xs text-base-content/60 italic">
@@ -793,6 +792,7 @@ const Sidebar = () => {
                         )}
                     </div>
                 </div>
+               
             )}
 
             {/* Contact Requests Modal */}
