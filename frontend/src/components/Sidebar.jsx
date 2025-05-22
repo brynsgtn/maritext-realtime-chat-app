@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
-import SidebarSkeleton from "../skeletons/SidebarSkeleton";
+import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 import {
     Users,
     PlusCircle,
@@ -364,7 +364,7 @@ const Sidebar = () => {
         selectedUser,
         setSelectedUser,
         isUsersLoading,
-        isContactLoading,
+        isContactsLoading,
         getAllUsers,
         users: allUsers,
         sendContactRequest,
@@ -382,7 +382,7 @@ const Sidebar = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [showRequestsModal, setShowRequestsModal] = useState(false);
-    const [useMockData, setUseMockData] = useState(true); // Set to false in production
+    const [useMockData, setUseMockData] = useState(false); // Set to false in production
     const [useMockUsers, setMockUsers] = useState(true); // Set to false in production
     const [useMockRequests, setMockRequests] = useState(false); // Set to false in production
 
@@ -428,7 +428,7 @@ const Sidebar = () => {
         getContactRequests();
         getAllUsers();
         getUserContacts();
-    }, [getUserContacts, useMockData, getAllUsers, getContactRequests,isAcceptingContact, isSendingContactRequest]);
+    }, [getUserContacts, useMockData, getAllUsers, getContactRequests, isAcceptingContact, isSendingContactRequest]);
 
     const toggleMockData = () => {
         setUseMockData(!useMockData);
@@ -469,7 +469,9 @@ const Sidebar = () => {
         console.log(requesterId)
     };
 
-    if (isContactLoading && !useMockData) return <SidebarSkeleton />;
+    if (!useMockData && (isContactsLoading)) {
+        return <SidebarSkeleton />;
+    }
 
     return (
         <>
@@ -616,28 +618,31 @@ const Sidebar = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-8 px-3">
-                            <div className="mx-auto bg-base-200 dark:bg-base-700 rounded-full w-16 h-16 flex items-center justify-center mb-3">
-                                <Users className="w-8 h-8 text-base-content/60" />
+                        !useMockData && !isContactsLoading && (
+                            <div className="text-center py-8 px-3">
+                                <div className="mx-auto bg-base-200 dark:bg-base-700 rounded-full w-16 h-16 flex items-center justify-center mb-3">
+                                    <Users className="w-8 h-8 text-base-content/60" />
+                                </div>
+                                <p className="text-sm font-medium text-base-content mb-1">
+                                    {searchQuery ? "No matching contacts" : "No contacts found"}
+                                </p>
+                                <p className="text-xs text-base-content/50 mb-4">
+                                    {filterStatus === "online"
+                                        ? "No online contacts available."
+                                        : searchQuery
+                                            ? "Try a different search term"
+                                            : "Add some friends to get started!"}
+                                </p>
+                                <button
+                                    onClick={() => setShowModal(true)}
+                                    className="btn btn-sm btn-outline btn-primary rounded-full px-4 py-2 text-xs font-medium inline-flex items-center justify-center gap-1"
+                                >
+                                    <PlusCircle className="w-4 h-4" />
+                                    Add Contacts
+                                </button>
                             </div>
-                            <p className="text-sm font-medium text-base-content mb-1">
-                                {searchQuery ? "No matching contacts" : "No contacts found"}
-                            </p>
-                            <p className="text-xs text-base-content/50 mb-4">
-                                {filterStatus === "online"
-                                    ? "No online contacts available."
-                                    : searchQuery
-                                        ? "Try a different search term"
-                                        : "Add some friends to get started!"}
-                            </p>
-                            <button
-                                onClick={() => setShowModal(true)}
-                                className="btn btn-sm btn-outline btn-primary rounded-full px-4 py-2 text-xs font-medium inline-flex items-center justify-center gap-1"
-                            >
-                                <PlusCircle className="w-4 h-4" />
-                                Add Contacts
-                            </button>
-                        </div>
+                        )
+
                     )}
                 </div>
 
