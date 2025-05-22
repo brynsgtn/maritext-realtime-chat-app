@@ -1,6 +1,6 @@
 
 
-// todo: add contact modal (icon update - this should be in socket io), view request modal, chat container
+// todo: add contact modal (fetch contact loader or skeleton), view request modal (decline request, loader skeleton), chat container
 
 
 import { useEffect, useState } from "react";
@@ -373,7 +373,9 @@ const Sidebar = () => {
         getContactRequests,
         contactRequests,
         acceptContactRequest,
-        isAcceptingContact
+        isAcceptingContact,
+        declineContactRequest,
+        isDecliningContact
     } = useChatStore();
 
     const [filterStatus, setFilterStatus] = useState("all"); // "all", "online", "offline"
@@ -459,6 +461,11 @@ const Sidebar = () => {
 
     const handleAcceptContactRequest = (requesterId) => {
         acceptContactRequest(requesterId)
+        console.log(requesterId)
+    };
+
+    const handleDeclineContactRequest = (requesterId) => {
+        declineContactRequest(requesterId)
         console.log(requesterId)
     };
 
@@ -858,15 +865,16 @@ const Sidebar = () => {
 
                                         <div className="flex flex-col gap-1">
                                             <button
-                                                className="p-1.5 rounded-full bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 transition-colors"
+                                                className="p-1.5 rounded-full bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 transition-colors hover:cursor-pointer"
                                                 aria-label={`Accept request from ${request.requester.username}`}
                                                 onClick={() => handleAcceptContactRequest(request.requester._id)}
                                             >
                                                 <CheckCircle2 className="size-5" />
                                             </button>
                                             <button
-                                                className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800 transition-colors"
+                                                className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800 transition-colors hover:cursor-pointer"
                                                 aria-label={`Decline request from ${request.requester.username}`}
+                                                onClick={() => handleDeclineContactRequest(request.requester._id)}
                                             >
                                                 <XCircle className="size-5" />
                                             </button>
