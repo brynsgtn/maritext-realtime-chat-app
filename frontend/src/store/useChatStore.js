@@ -15,6 +15,7 @@ export const useChatStore = create((set) => ({
     isGettingContactRequests: false,
     contactRequests: [],
     isAcceptingContact: false,
+    isDecliningContact: false,
 
     getUserContacts: async () => {
         set({ isContactsLoading: true });
@@ -90,6 +91,20 @@ export const useChatStore = create((set) => ({
             return false;
         } finally {
             set({ isAcceptingContact: false });
+        };
+    },
+
+    declineContactRequest: async (requesterId) => {
+        set({ isDecliningContact: true });
+        try {
+            const res = await axiosInstance.post("/contacts/decline-contact-request", { requesterId });
+            toast.success(res.data.message);
+            return true;
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+            return false;
+        } finally {
+            set({ isDecliningContact: false });
         };
     },
 
