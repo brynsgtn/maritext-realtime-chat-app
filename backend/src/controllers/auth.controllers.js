@@ -332,7 +332,7 @@ export const inviteUser = async (req, res) => {
     try {
 
         const { email } = req.body;
-        const registrationURL = "http://localhost:5001/signup" // route in frontend
+        const registrationURL = "http://localhost:5173/signup" // route in frontend, soon to be change in deployed domain
 
         if (!email) {
             return res.status(400).json({ error: 'Email is required' });
