@@ -1,6 +1,6 @@
 
 
-// todo: view request modal (loader skeleton), invite use, chat container
+// todo: invite user, remove contact, chat container
 
 
 import { useEffect, useState } from "react";
@@ -21,7 +21,7 @@ import {
     MailPlus,
     Loader2,
     Clock,
-    UserCheck
+    UserCheck,
 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -376,7 +376,9 @@ const Sidebar = () => {
         acceptContactRequest,
         isAcceptingContact,
         declineContactRequest,
-        isDecliningContact
+        isDecliningContact,
+        inviteUser,
+        isInvitingUser,
     } = useChatStore();
 
     const [filterStatus, setFilterStatus] = useState("all"); // "all", "online", "offline"
@@ -388,7 +390,7 @@ const Sidebar = () => {
     const [useMockRequests, setMockRequests] = useState(false); // Set to false in production
 
     const [showInviteModal, setShowInviteModal] = useState(false);
-    const [inviteEmail, setInviteEmail] = useState("");
+    const [email, setEmail] = useState("");
 
     const contacts = useMockData ? MOCK_CONTACTS : storeContacts;
     const users = useMockUsers ? MOCK_USERS : allUsers.users;
@@ -471,6 +473,11 @@ const Sidebar = () => {
         declineContactRequest(requesterId)
         console.log(requesterId)
     };
+
+    const handleInviteUser = (email) => {
+        inviteUser(email);
+        console.log(email)
+    }
 
     if (!useMockData && (isContactsLoading)) {
         return <SidebarSkeleton />;
@@ -936,11 +943,17 @@ const Sidebar = () => {
                                 type="email"
                                 name="email"
                                 placeholder="friend@example.com"
+                                valu={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                                 className="input input-bordered w-full my-4"
                             />
 
-                            <button type="submit" className="btn btn-primary w-full">
+                            <button
+                                type="submit"
+                                className="btn btn-primary w-full"
+                                onClick={() => handleInviteUser(email)}
+                            >
                                 Send Invite
                             </button>
                         </form>
