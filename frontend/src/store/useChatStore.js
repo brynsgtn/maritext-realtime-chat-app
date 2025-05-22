@@ -16,6 +16,7 @@ export const useChatStore = create((set) => ({
     contactRequests: [],
     isAcceptingContact: false,
     isDecliningContact: false,
+    isInvitingUser: false,
 
     getUserContacts: async () => {
         set({ isContactsLoading: true });
@@ -107,6 +108,21 @@ export const useChatStore = create((set) => ({
             set({ isDecliningContact: false });
         };
     },
+
+    inviteUser: async (email) => {
+        set({ isInvitingUser: true });
+        try {
+            const res = await axiosInstance.post("/auth/invite-user", { email });
+            toast.success(res.data.message);
+            return true;
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+            return false;
+        } finally {
+            set({ isInvitingUser: false });
+        };
+    },
+
 
     // todo:optimize this later
     setSelectedUser: (selectedUser) => set({ selectedUser })
