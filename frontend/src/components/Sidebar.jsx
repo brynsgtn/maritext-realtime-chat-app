@@ -1,6 +1,6 @@
 
 
-// todo: decline contact modal (skeleton), invite user modal(skeleton), chat container, remove contact
+// todo: chat container, remove contact
 
 
 import { useEffect, useState } from "react";
@@ -477,8 +477,11 @@ const Sidebar = () => {
         console.log(requesterId)
     };
 
-    const handleInviteUser = (email) => {
-        inviteUser(email);
+    const handleInviteUser = async (email) => {
+        const success = await inviteUser(email);
+        if (success === true) {
+            setShowInviteModal(false);
+        }
         console.log(email)
     }
 
@@ -944,7 +947,6 @@ const Sidebar = () => {
                             onSubmit={(e) => {
                                 e.preventDefault();
                                 console.log("Inviting:", email);
-                                setShowInviteModal(false);
                             }}
                         >
                             <label className="label">
@@ -965,7 +967,7 @@ const Sidebar = () => {
                                 className="btn btn-primary w-full"
                                 onClick={() => handleInviteUser(email)}
                             >
-                                Send Invite
+                                {isInvitingUser ? <Loader /> : "Send Invite"}
                             </button>
                         </form>
                     </div>
