@@ -1,11 +1,6 @@
 
-
-// todo: chat container, remove contact
-
-
 import { useEffect, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
-import { useAuthStore } from "../store/useAuthStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 import {
     Users,
@@ -26,10 +21,9 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from 'dayjs/plugin/relativeTime';
+import ModalSkeleton from "./skeletons/ModalSkeleton";
 
 dayjs.extend(relativeTime);
-import { Link } from "react-router-dom";
-import ModalSkeleton from "./skeletons/ModalSkeleton";
 
 // Mock data for testing
 const MOCK_CONTACTS = [
@@ -345,7 +339,6 @@ const MOCK_REQUESTS = [
     }
 ];
 
-
 const StatusBadge = ({ status }) => {
     const statusColors = {
         online: "bg-green-500",
@@ -421,7 +414,9 @@ const Sidebar = () => {
         if (users) {
             console.log("Updated users: ", users)
         }
-    }, [contactRequests, users]);
+
+        console.log(`Selected contact: ${selectedUser}`)
+    }, [contactRequests, users, selectedUser]);
 
     useEffect(() => {
         const currentRequests = useMockRequests ? MOCK_REQUESTS : contactRequests?.requests || [];
@@ -434,7 +429,7 @@ const Sidebar = () => {
         getContactRequests();
         getAllUsers();
         getUserContacts();
-    }, [getUserContacts, useMockData, getAllUsers, getContactRequests, isSendingContactRequest]);
+    }, [getUserContacts, useMockData, getAllUsers, getContactRequests, isSendingContactRequest, isDecliningContact, isAcceptingContact]);
 
     const toggleMockData = () => {
         setUseMockData(!useMockData);
@@ -462,18 +457,21 @@ const Sidebar = () => {
 
     const handleRequestContact = (recipientId, user) => {
         sendContactRequest(recipientId)
+        setShowModal(false)
         console.log(user)
     };
 
     const handleAcceptContactRequest = (requesterId) => {
         acceptContactRequest(requesterId)
         setLoadingRequestId(requesterId);
+        setShowRequestsModal(false)
         console.log(requesterId)
     };
 
     const handleDeclineContactRequest = (requesterId) => {
         declineContactRequest(requesterId)
         setLoadingRequestId(requesterId);
+        setShowRequestsModal(false)
         console.log(requesterId)
     };
 
@@ -505,7 +503,7 @@ const Sidebar = () => {
                                 onClick={() => setShowRequestsModal(true)}
                                 className="relative p-1.5 rounded-full transition-colors hover:cursor-pointer"
                             >
-                                <Bell className="size-5 text-gray-600 dark:text-gray-900" />
+                                <Bell className="size-5" />
                                 {pendingRequestCount > 0 && (
                                     <span className="absolute -top-1 -right-1 bg-error text-primary-content text-xs rounded-full size-5 flex items-center justify-center">
                                         {pendingRequestCount}
@@ -594,7 +592,7 @@ const Sidebar = () => {
                             {filteredContacts.map((contact) => (
                                 <button
                                     key={contact._id}
-                                    onClick={() => setSelectedUser(contact)}
+                                    onClick={() => setSelectedUser(contact?.user)}
                                     className={`
             w-full p-2 flex items-center gap-3 rounded-lg
             hover:bg-base-200 dark:hover:bg-base-700 transition-colors
@@ -865,7 +863,7 @@ const Sidebar = () => {
                                                 className="flex items-center gap-3 p-3 border border-base-300 dark:border-base-700 rounded-lg bg-base-200 dark:bg-base-800"
                                             >
                                                 <div className="size-12 rounded-full overflow-hidden flex-shrink-0">
-                                                    {request.profilePic ? (
+                                                    {request.requester.profilePic ? (
                                                         <img
                                                             src={request.requester.profilePic}
                                                             alt={request.requester.username}
