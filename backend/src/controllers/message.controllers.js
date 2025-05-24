@@ -1,5 +1,6 @@
 import Message from "../models/message.model.js";
 import mongoose from "mongoose";
+import cloudinary from "../lib/cloudinary.js";
 
 export const getMessages = async (req, res) => {
     try {
