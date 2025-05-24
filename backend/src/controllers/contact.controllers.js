@@ -211,13 +211,13 @@ export const declineContactRequest = async (req, res) => {
         }
 
         // Find the pending contact request
-        const contactRequest = await Contact.findOne({
+        const deletedContactRequest = await Contact.findOneAndDelete({
             requester: requesterId,
             recipient: recipientId,
             status: "pending"
         });
 
-        if (!contactRequest) {
+        if (!deletedContactRequest) {
             return res.status(400).json({
                 success: false,
                 message: "No pending contact request found"
@@ -226,14 +226,14 @@ export const declineContactRequest = async (req, res) => {
 
         // Update status
 
-        contactRequest.status = "declined"
+        // deletedContactRequest.status = "declined"
 
-        await contactRequest.save();
+        // await deletedContactRequest.save();
 
-        res.status(201).json({
+        res.status(200).json({
             success: true,
             message: "Contact request declined",
-            contact: contactRequest,
+            // contact: deletedContactRequest,
         });
 
     } catch (error) {
@@ -260,7 +260,7 @@ export const getAllUserContacts = async (req, res) => {
 
         // Format the response to show the "other" user's data for each contact
         const formattedContacts = contacts.map(contact => {
-            const isRequester = contact.requester._id.toString() === userId;
+            const isRequester = contact.requester._id.toString() === userId.toString();
             const otherUser = isRequester ? contact.recipient : contact.requester;
 
             return {
