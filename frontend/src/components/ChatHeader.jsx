@@ -22,8 +22,9 @@ const ChatHeader = () => {
 
     <>
       <div className="p-2.5 border-b border-base-300">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-row sm:items-center justify-between gap-2 sm:gap-0">
+          {/* Left side: Avatar + Info */}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Avatar */}
             <div className="avatar">
               <div className="size-10 rounded-full relative">
@@ -32,30 +33,38 @@ const ChatHeader = () => {
             </div>
 
             {/* User info */}
-            <div>
-              <div className="flex items-center">
-                <h3 className="font-medium">{selectedUser.username}</h3>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-medium text-sm truncate max-w-[120px] sm:max-w-[160px]">
+                  {selectedUser.username}
+                </h3>
                 <UserRoundXIcon
-                  className="ms-3 size-4 cursor-pointer text-error"
+                  className="size-3 hidden md:block md:size-4 cursor-pointer text-error"
                   onClick={() => setIsModalOpen(true)}
                 />
               </div>
-              <p className="text-sm text-base-content/70">
-                {/* {onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"} */}
+              <p className="text-xs text-base-content/70 truncate max-w-[180px] sm:max-w-[240px]">
                 {selectedUser.email}
               </p>
             </div>
           </div>
 
           {/* Close button */}
+          <div className="flex flex-col items-center">
           <button onClick={() => setSelectedUser(null)}>
             <X />
           </button>
+          <UserRoundXIcon
+            className="size-4 block md:hidden md:size-4 cursor-pointer text-error"
+            onClick={() => setIsModalOpen(true)}
+          />
+          </div>
         </div>
       </div>
 
 
- {/* Modal */}
+
+      {/* Modal */}
       {isModalOpen && (
         <div
           className="modal modal-open fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
