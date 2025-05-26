@@ -17,6 +17,7 @@ export const useChatStore = create((set, get) => ({
     isAcceptingContact: false,
     isDecliningContact: false,
     isInvitingUser: false,
+    isRemovingContact: false,
 
     getUserContacts: async () => {
         set({ isContactsLoading: true });
@@ -128,16 +129,39 @@ export const useChatStore = create((set, get) => ({
 
         try {
             const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
-            set({messages:[...messages, res.data]})
+            set({ messages: [...messages, res.data] })
             // toast.success(res.data.message);
             return true;
         } catch (error) {
             toast.error(error?.response?.data?.message || error.message);
             // return false;
-        }; 
+        };
         // finally {
         //     set({ isInvitingUser: false });
         // };
+    },
+
+    removeContact: async (recipientId) => {
+        set({ isRemovingContact: true });
+        try {
+            const res = await axiosInstance.delete(`/contacts/remove-contact`, {
+                data: { recipientId },
+            });
+            toast.success(res.data.message);
+
+            // Remove from selectedUser if it's the one being deleted
+            set((state) => {
+                if (state.selectedUser?._id === recipientId) {
+                    return { selectedUser: null };
+                }
+                return {};
+            });
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+            return false;
+        } finally {
+            set({ isRemovingContact: false });
+        };
     },
 
     // todo:optimize this later
