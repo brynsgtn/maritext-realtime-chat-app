@@ -61,7 +61,7 @@ const ChatContainer = () => {
                 <img
                   src={
                     message.senderId === authUser.user._id
-                      ? authUser.profilePic || "/avatar.png"
+                      ? authUser.user.profilePic || "/avatar.png"
                       : selectedUser.profilePic || "/avatar.png"
                   }
                   alt="profile pic"
