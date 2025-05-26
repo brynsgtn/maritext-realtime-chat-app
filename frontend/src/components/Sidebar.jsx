@@ -429,7 +429,7 @@ const Sidebar = () => {
         getContactRequests();
         getAllUsers();
         getUserContacts();
-    }, [getUserContacts, useMockData, getAllUsers, getContactRequests, isSendingContactRequest, isDecliningContact, isAcceptingContact]);
+    }, [getUserContacts, useMockData, getAllUsers, getContactRequests, isSendingContactRequest, isDecliningContact, isAcceptingContact, selectedUser]);
 
     const toggleMockData = () => {
         setUseMockData(!useMockData);
@@ -652,7 +652,7 @@ const Sidebar = () => {
                                     className="btn btn-sm btn-outline btn-primary rounded-full px-4 py-2 text-xs font-medium inline-flex items-center justify-center gap-1"
                                 >
                                     <PlusCircle className="w-4 h-4" />
-                                    Add Contacts
+                                    <div className="hidden lg:block">Add Contacts</div>
                                 </button>
                             </div>
                         )
