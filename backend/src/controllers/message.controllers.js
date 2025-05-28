@@ -1,6 +1,7 @@
 import Message from "../models/message.model.js";
 import mongoose from "mongoose";
 import cloudinary from "../lib/cloudinary.js";
+import { getReceiverSocketId, io } from "../lib/socket.js";
 
 export const getMessages = async (req, res) => {
     try {
@@ -35,8 +36,8 @@ export const sendMessage = async (req, res) => {
             imageUrl = uploadResponse.secure_url;
         };
 
-        // to do - delivered feature
-        // const receiverSocketId = getReceiverSocketId(receiverId);
+
+
         // const isDelivered = Boolean(receiverSocketId);
 
         const newMessage = new Message({
@@ -51,10 +52,10 @@ export const sendMessage = async (req, res) => {
 
         await newMessage.save();
 
-        // const receiverSocketId = getReceiverSocketId(receiverId);
-        // if (receiverSocketId) {
-        //     io.to(receiverSocketId).emit("newMessage", newMessage);
-        // }
+        const receiverSocketId = getReceiverSocketId(receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("newMessage", newMessage);
+        }
 
         res.status(201).json(newMessage);
     } catch (error) {
