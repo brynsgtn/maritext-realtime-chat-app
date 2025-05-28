@@ -25,7 +25,7 @@ export const useChatStore = create((set, get) => ({
             const res = await axiosInstance.get("/contacts/get-all-user-contacts");
             set({ contacts: res.data.contacts });
         } catch (error) {
-            toast.error(error?.response?.data?.message || error.message);
+            console.error(error?.response?.data?.message || error.message);
         } finally {
             set({ isContactsLoading: false });
         };
@@ -37,7 +37,7 @@ export const useChatStore = create((set, get) => ({
             const res = await axiosInstance.get(`/messages/${userId}`);
             set({ messages: res.data });
         } catch (error) {
-            toast.error(error?.response?.data?.message || error.message);
+            console.error(error?.response?.data?.message || error.message);
         } finally {
             set({ isMessagesLoading: false });
         };
@@ -49,7 +49,7 @@ export const useChatStore = create((set, get) => ({
             const res = await axiosInstance.get("/contacts/users");
             set({ users: res.data });
         } catch (error) {
-            toast.error(error?.response?.data?.message || error.message);
+            console.error(error?.response?.data?.message || error.message);
         } finally {
             set({ isUsersLoading: false });
         };
@@ -76,7 +76,7 @@ export const useChatStore = create((set, get) => ({
             console.log(res.data)
             set({ contactRequests: res.data });
         } catch (error) {
-            toast.error(error?.response?.data?.message || error.message);
+            console.error(error?.response?.data?.message || error.message);
         } finally {
             set({ isGettingContactRequests: false });
         };
