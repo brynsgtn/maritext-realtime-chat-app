@@ -384,16 +384,24 @@ const Sidebar = () => {
     // const isGettingContactRequests = true
 
     // Filter contacts based on status and search query
-    const filteredContacts = contacts.filter((contact) => {
+    const filteredContacts = contacts.filter(({ user }) => {
+        if (!user) return false;
+
+        const username = user.username?.toLowerCase() || "";
+        const search = searchQuery.toLowerCase();
+
+        const isOnline = onlineUsers.includes(user._id);
+
         const matchesStatus =
             filterStatus === "all" ||
-            contact.user.status === filterStatus;
+            (filterStatus === "online" && isOnline) ||
+            (filterStatus === "offline" && !isOnline);
 
-        const matchesSearch =
-            contact.user.username.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = username.includes(search);
 
         return matchesStatus && matchesSearch;
     });
+
 
     useEffect(() => {
         if (contactRequests) {
@@ -404,7 +412,7 @@ const Sidebar = () => {
         if (users) {
             console.log("Updated users: ", users)
         }
-
+        console.log("Contacts:", contacts);
         console.log(`Selected contact: ${selectedUser}`)
     }, [contactRequests, users, selectedUser]);
 
@@ -609,7 +617,7 @@ const Sidebar = () => {
                                             <span
                                                 className="absolute bottom-0 right-0 size-3 bg-green-500 
                   rounded-full ring-2 ring-zinc-900"
-                                            /> )}
+                                            />)}
                                     </div>
 
                                     <div className="hidden lg:block text-left min-w-0 flex-1">
