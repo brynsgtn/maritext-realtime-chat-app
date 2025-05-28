@@ -5,10 +5,11 @@ import authRoutes from "./routes/auth.routes.js";
 import contactRoutes from "./routes/contact.routes.js"
 import messageRoutes from "./routes/message.routes.js"
 import cors from "cors";
+import { app, server } from "./lib/socket.js"
 
 import { connectDB } from "./lib/db.js";
 
-const app = express();
+
 
 dotenv.config();
 
@@ -27,7 +28,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/messages", messageRoutes);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`🚀 Server Running on port ${PORT}`);
     connectDB();
 });
