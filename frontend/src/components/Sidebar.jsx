@@ -22,6 +22,7 @@ import {
 import dayjs from "dayjs";
 import relativeTime from 'dayjs/plugin/relativeTime';
 import ModalSkeleton from "./skeletons/ModalSkeleton";
+import { useAuthStore } from "../store/useAuthStore";
 
 dayjs.extend(relativeTime);
 
@@ -339,19 +340,6 @@ const MOCK_REQUESTS = [
     }
 ];
 
-const StatusBadge = ({ status }) => {
-    const statusColors = {
-        online: "bg-green-500",
-        offline: "bg-gray-400",
-        away: "bg-yellow-500",
-        busy: "bg-red-500"
-    };
-
-    return (
-        <span className={`absolute bottom-0 right-0 size-3 ${statusColors[status] || "bg-gray-400"} rounded-full ring-2 ring-base-300`} />
-    );
-};
-
 const Sidebar = () => {
     const {
         getUserContacts,
@@ -374,6 +362,8 @@ const Sidebar = () => {
         inviteUser,
         isInvitingUser,
     } = useChatStore();
+
+    const { onlineUsers } = useAuthStore();
 
     const [filterStatus, setFilterStatus] = useState("all"); // "all", "online", "offline"
     const [searchQuery, setSearchQuery] = useState("");
@@ -482,6 +472,7 @@ const Sidebar = () => {
         }
         console.log(email)
     }
+
 
     if (!useMockData && (isContactsLoading)) {
         return <SidebarSkeleton />;
@@ -614,7 +605,11 @@ const Sidebar = () => {
                                                 </div>
                                             )}
                                         </div>
-                                        <StatusBadge status={contact.user.status} />
+                                        {onlineUsers.includes(contact.user._id) && (
+                                            <span
+                                                className="absolute bottom-0 right-0 size-3 bg-green-500 
+                  rounded-full ring-2 ring-zinc-900"
+                                            /> )}
                                     </div>
 
                                     <div className="hidden lg:block text-left min-w-0 flex-1">
