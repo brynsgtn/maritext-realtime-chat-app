@@ -18,7 +18,7 @@ const ChatContainer = () => {
     selectedUser,
     subscribeToMessages,
     unsubscribeFromMessages,
-    unsendMessage, // Add this to your chat store
+    unsendMessage,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
@@ -30,16 +30,16 @@ const ChatContainer = () => {
   useEffect(() => {
     getMessages(selectedUser._id);
     console.log(authUser)
-    // subscribeToMessages();
+    subscribeToMessages();
 
-    // return () => unsubscribeFromMessages();
+    return () => unsubscribeFromMessages();
   }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
 
-  // useEffect(() => {
-  //   if (messageEndRef.current && messages) {
-  //     messageEndRef.current.scrollIntoView({ behavior: "smooth" });
-  //   }
-  // }, [messages]);
+  useEffect(() => {
+    if (messageEndRef.current && messages) {
+      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   const handleUnsendClick = (message) => {
     setMessageToUnsend(message);
