@@ -1,4 +1,4 @@
-// to do - online users, delivered, chat deletion?, preview image modal
+// to do - sent, delivered, chat deletion, preview image modal
 
 import { useChatStore } from "../store/useChatStore";
 import { useEffect, useRef, useState } from "react";
@@ -19,10 +19,11 @@ const ChatContainer = () => {
     subscribeToMessages,
     unsubscribeFromMessages,
     unsendMessage,
+    isUnsendingMessage,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
-  
+
   // Modal state
   const [showUnsendModal, setShowUnsendModal] = useState(false);
   const [messageToUnsend, setMessageToUnsend] = useState(null);
@@ -33,7 +34,7 @@ const ChatContainer = () => {
     subscribeToMessages();
 
     return () => unsubscribeFromMessages();
-  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages, isUnsendingMessage]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
@@ -41,20 +42,20 @@ const ChatContainer = () => {
     }
   }, [messages]);
 
-  const handleUnsendClick = (message) => {
-    setMessageToUnsend(message);
+  const handleUnsendClick = (messageId) => {
+    setMessageToUnsend(messageId);
+    console.log(messageId)
     setShowUnsendModal(true);
   };
 
   const confirmUnsend = async () => {
     if (messageToUnsend) {
       try {
-        await unsendMessage(messageToUnsend._id);
+        await unsendMessage(messageToUnsend);
         setShowUnsendModal(false);
         setMessageToUnsend(null);
       } catch (error) {
         console.error("Failed to unsend message:", error);
-        // You might want to show an error toast here
       }
     }
   };
@@ -64,17 +65,6 @@ const ChatContainer = () => {
     setMessageToUnsend(null);
   };
 
-  // Check if message can be unsent (within time limit, e.g., 5 minutes)
-  const canUnsendMessage = (message) => {
-    if (message.senderId !== authUser.user._id) return false;
-    
-    const messageTime = new Date(message.createdAt);
-    const currentTime = new Date();
-    const timeDifference = currentTime - messageTime;
-    const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
-    
-    return timeDifference <= fiveMinutes;
-  };
 
   if (isMessagesLoading) {
     return (
@@ -89,7 +79,7 @@ const ChatContainer = () => {
   return (
     <div className="flex-1 flex flex-col overflow-auto">
       <ChatHeader />
-   
+
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
@@ -113,18 +103,18 @@ const ChatContainer = () => {
               <time className="text-xs opacity-50 ml-1">
                 {formatMessageTime(message.createdAt)}
               </time>
-              {/* Unsend button - only show for own messages within time limit */}
-              {canUnsendMessage(message) && (
-                <button
-                  onClick={() => handleUnsendClick(message)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2 p-1 bg-none rounded-full cursor-pointer"
-                  title="Unsend message"
-                >
-                  <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
-                </button>
+              {!message.isUnsent && (
+              <button
+                onClick={() => handleUnsendClick(message._id)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2 p-1 bg-none rounded-full cursor-pointer"
+                title="Unsend message"
+              >
+                <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
+              </button>   
               )}
+
             </div>
-            <div className="chat-bubble flex flex-col">
+            <div className={`chat-bubble flex flex-col ${message.isUnsent ? ' text-gray-600 italic' : ''}`}>
               {message.image && (
                 <img
                   src={message.image}
@@ -132,7 +122,7 @@ const ChatContainer = () => {
                   className="sm:max-w-[200px] rounded-md mb-2"
                 />
               )}
-              {message.text && <p>{message.text}</p>}
+              {message.text && <p className={message.isUnsent ? 'italic' : ''} >{message.text}</p>}
             </div>
           </div>
         ))}
@@ -141,22 +131,22 @@ const ChatContainer = () => {
       {/* Unsend Confirmation Modal */}
       {showUnsendModal && (
         <div className="fixed inset-0 backdrop-blur-md bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm mx-4 shadow-xl">
+          <div className="rounded-lg p-6 max-w-sm mx-4 shadow-xl">
             <div className="flex items-center mb-4">
               <AlertTriangle className="h-6 w-6 text-red-500 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold">
                 Unsend Message
               </h3>
             </div>
-            
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
+
+            <p className="mb-6">
               Are you sure you want to unsend this message? This action cannot be undone and the message will be removed for everyone.
             </p>
-            
+
             <div className="flex justify-end space-x-3">
               <button
                 onClick={cancelUnsend}
-                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-md transition-colors cursor-pointer"
               >
                 Cancel
               </button>
