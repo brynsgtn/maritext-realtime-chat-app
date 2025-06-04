@@ -18,6 +18,7 @@ export const useChatStore = create((set, get) => ({
     isDecliningContact: false,
     isInvitingUser: false,
     isRemovingContact: false,
+    isUnsendingMessage: false,
 
     getUserContacts: async () => {
         set({ isContactsLoading: true });
@@ -164,6 +165,21 @@ export const useChatStore = create((set, get) => ({
         };
     },
 
+    unsendMessage: async (messageId) => {
+        set({ isUnsendingMessage: true });
+
+        try {
+            const res = await axiosInstance.post(`/messages/unsend-message/${messageId}`);
+            toast.success(res.data.message);
+            return true;
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+            return false;
+        } finally {
+            set({ isUnsendingMessage: false });
+        };
+    },
+
     subscribeToMessages: () => {
         const { selectedUser } = get();
         if (!selectedUser) return;
@@ -171,8 +187,8 @@ export const useChatStore = create((set, get) => ({
         const socket = useAuthStore.getState().socket;
 
         socket.on("newMessage", (newMessage) => {
-            // const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-            // if (!isMessageSentFromSelectedUser) return;
+            const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
+            if (!isMessageSentFromSelectedUser) return;
 
             set({
                 messages: [...get().messages, newMessage],
@@ -185,7 +201,6 @@ export const useChatStore = create((set, get) => ({
         socket.off("newMessage");
     },
 
-    // todo:optimize this later
     setSelectedUser: (selectedUser) => {
         set({ selectedUser })
         console.log(selectedUser)
