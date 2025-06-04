@@ -1,4 +1,4 @@
-// to do - sent, delivered, chat deletion, preview image modal
+// to do - delivered, read, preview image modal
 
 import { useChatStore } from "../store/useChatStore";
 import { useEffect, useRef, useState } from "react";
@@ -23,6 +23,9 @@ const ChatContainer = () => {
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
+  const lastSentMessage = [...messages]
+    .reverse()
+    .find((msg) => msg.sender === authUser?._id && !msg.isUnsent);
 
   // Modal state
   const [showUnsendModal, setShowUnsendModal] = useState(false);
@@ -31,6 +34,7 @@ const ChatContainer = () => {
   useEffect(() => {
     getMessages(selectedUser._id);
     console.log(authUser)
+
     subscribeToMessages();
 
     return () => unsubscribeFromMessages();
@@ -81,7 +85,11 @@ const ChatContainer = () => {
       <ChatHeader />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => (
+        {messages.map((message) => {
+const isLastSent = lastSentMessage && message._id === lastSentMessage._id;
+        
+        
+        return (
           <div
             key={message._id}
             className={`chat ${message.senderId === authUser.user._id ? "chat-end" : "chat-start"} group`}
@@ -104,17 +112,17 @@ const ChatContainer = () => {
                 {formatMessageTime(message.createdAt)}
               </time>
               {!message.isUnsent && (
-              <button
-                onClick={() => handleUnsendClick(message._id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2 p-1 bg-none rounded-full cursor-pointer"
-                title="Unsend message"
-              >
-                <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
-              </button>   
+                <button
+                  onClick={() => handleUnsendClick(message._id)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2 p-1 bg-none rounded-full cursor-pointer"
+                  title="Unsend message"
+                >
+                  <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
+                </button>
               )}
 
             </div>
-            <div className={`chat-bubble flex flex-col ${message.isUnsent ? ' text-gray-600 italic' : ''}`}>
+            <div className={`chat-bubble flex flex-col ${message.isUnsent ? ' chat-bubble-secondary italic' : ''}`}>
               {message.image && (
                 <img
                   src={message.image}
@@ -124,8 +132,13 @@ const ChatContainer = () => {
               )}
               {message.text && <p className={message.isUnsent ? 'italic' : ''} >{message.text}</p>}
             </div>
+            {isLastSent && (
+              <span className="text-xs text-gray-400 mt-1 self-end">
+                {message.isDelivered? "Delivered" : "Sent"}
+              </span>
+            )}
           </div>
-        ))}
+        )})}
       </div>
 
       {/* Unsend Confirmation Modal */}
