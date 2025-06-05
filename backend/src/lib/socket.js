@@ -37,6 +37,34 @@ io.on("connection", (socket) => {
         io.emit("getOnlineUsers", Object.keys(userSocketMap));
     });
 
+    // Handle individual message delivery confirmation
+    socket.on("confirmMessageDelivery", async ({ messageId, senderId }) => {
+        try {
+            const message = await Message.findByIdAndUpdate(
+                messageId,
+                {
+                    isDelivered: true,
+                    deliveredAt: new Date()
+                },
+                { new: true }
+            );
+
+            if (message) {
+                // Notify the sender about delivery
+                const senderSocketId = userSocketMap[senderId];
+                if (senderSocketId) {
+                    io.to(senderSocketId).emit("messageDelivered", {
+                        messageId,
+                        receiverId: userId,
+                        deliveredAt: message.deliveredAt
+                    });
+                }
+            }
+        } catch (err) {
+            console.error("Error in confirmMessageDelivery:", err.message);
+        }
+    });
+    
     socket.on("markMessagesDelivered", async ({ senderId, receiverId }) => {
         try {
             const updatedMessages = await Message.updateMany(
@@ -62,6 +90,36 @@ io.on("connection", (socket) => {
 
         } catch (err) {
             console.error("Error in markMessagesDelivered:", err.message);
+        }
+    });
+
+
+    socket.on("markMessagesAsRead", async ({ senderId, receiverId }) => {
+        try {
+            const updatedMessages = await Message.updateMany(
+                {
+                    senderId,
+                    receiverId,
+                    isRead: false,
+                    isUnsent: false,
+                },
+                {
+                    $set: { isRead: true, readAt: new Date() },
+                }
+            );
+
+            // Notify the sender about the read status if they're online
+            const senderSocketId = userSocketMap[senderId];
+            if (senderSocketId && updatedMessages.modifiedCount > 0) {
+                io.to(senderSocketId).emit("messagesRead", {
+                    receiverId,
+                    readAt: new Date(),
+                    updatedCount: updatedMessages.modifiedCount
+                });
+            }
+
+        } catch (err) {
+            console.error("Error in markMessagesAsRead:", err.message);
         }
     });
 
@@ -104,7 +162,8 @@ io.on("connection", (socket) => {
         } catch (error) {
             console.error("Error marking messages as delivered on connection:", error);
         }
-    }
+    };
+
 
 
 });

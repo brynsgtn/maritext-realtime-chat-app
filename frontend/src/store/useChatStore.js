@@ -185,27 +185,33 @@ export const useChatStore = create((set, get) => ({
         if (!selectedUser) return;
 
         const socket = useAuthStore.getState().socket;
-        const authUser = useAuthStore.getState();
+        const authUser = useAuthStore.getState().authUser;
 
         socket.on("newMessage", (newMessage) => {
             const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
             if (!isMessageSentFromSelectedUser) return;
 
-            set({
-                messages: [...get().messages, newMessage],
+            set((state) => ({
+                messages: [...state.messages, newMessage],
+            }));
+
+            // Confirm delivery of the message to the sender
+            socket.emit("confirmMessageDelivery", {
+                messageId: newMessage._id,
+                senderId: newMessage.senderId
             });
         });
 
         // Listen for delivery confirmations
         socket.on("messagesDelivered", ({ receiverId, deliveredOnConnection, updatedCount }) => {
             console.log("Messages delivered event received:", { receiverId, deliveredOnConnection, updatedCount });
-            
+
             set((state) => ({
                 messages: state.messages.map((msg) => {
                     // Update messages sent by current user to the receiver who just came online
-                    if (msg.senderId === authUser.user._id && 
-                        msg.receiverId === receiverId && 
-                        !msg.isDelivered && 
+                    if (msg.senderId === authUser.user._id &&
+                        msg.receiverId === receiverId &&
+                        !msg.isDelivered &&
                         !msg.isUnsent) {
                         return { ...msg, isDelivered: true, deliveredAt: new Date() };
                     }
@@ -213,20 +219,68 @@ export const useChatStore = create((set, get) => ({
                 }),
             }));
         });
+
+        // Listen for read confirmations
+        socket.on("messagesRead", ({ receiverId, readAt, updatedCount }) => {
+            console.log("Messages read event received:", { receiverId, readAt, updatedCount });
+
+            set((state) => ({
+                messages: state.messages.map((msg) => {
+                    // Update messages sent by current user to the receiver who read them
+                    if (msg.senderId === authUser.user._id &&
+                        msg.receiverId === receiverId &&
+                        !msg.isRead &&
+                        !msg.isUnsent) {
+                        return { ...msg, isRead: true, readAt: new Date(readAt) };
+                    }
+                    return msg;
+                }),
+            }));
+        });
+
+        // Listen for unsent messages
+        socket.on("messageUnsent", ({ messageId, unsentMessage }) => {
+            set((state) => ({
+                messages: state.messages.map((msg) => {
+                    if (msg._id === messageId) {
+                        return unsentMessage;
+                    }
+                    return msg;
+                }),
+            }));
+        });
+
         socket.emit("markMessagesDelivered", {
             senderId: selectedUser._id,
-            receiverId: authUser._id,
+            receiverId: authUser.user._id,
+        });
+
+        // Mark messages as read when opening chat
+        socket.emit("markMessagesAsRead", {
+            senderId: selectedUser._id,
+            receiverId: authUser.user._id,
         });
     },
 
     unsubscribeFromMessages: () => {
         const socket = useAuthStore.getState().socket;
         socket.off("newMessage");
+        socket.off("messagesDelivered");
+        socket.off("messagesRead");
+        socket.off("messageUnsent");
     },
 
     markMessageAsDelivered: (messageId, receiverId) => {
         const socket = useAuthStore.getState().socket;
         socket.emit("messageDelivered", { messageId, receiverId });
+    },
+
+    markMessagesAsRead: async (senderId) => {
+        try {
+            await axiosInstance.post(`/messages/read-message/${senderId}`);
+        } catch (error) {
+            console.error("Error marking messages as read:", error);
+        }
     },
 
     setSelectedUser: (selectedUser) => {

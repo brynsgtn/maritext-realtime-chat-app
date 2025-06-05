@@ -1,4 +1,4 @@
-// to do - delivered, read, typing, optimize
+// to do - typing, optimize
 
 import { useChatStore } from "../store/useChatStore";
 import { useEffect, useRef, useState } from "react";
@@ -24,12 +24,13 @@ const ChatContainer = () => {
     unsubscribeFromMessages,
     unsendMessage,
     isUnsendingMessage,
+    markMessagesAsRead,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
   const lastSentMessage = [...messages]
     .reverse()
-    .find((msg) => msg.sender === authUser?._id && !msg.isUnsent);
+    .find((msg) => msg.senderId === authUser?.user?._id && !msg.isUnsent);
 
   // Modal state
   const [showUnsendModal, setShowUnsendModal] = useState(false);
@@ -38,13 +39,23 @@ const ChatContainer = () => {
   const [messageToUnsend, setMessageToUnsend] = useState(null);
 
   useEffect(() => {
-    getMessages(selectedUser._id);
-    console.log(authUser)
+    if (selectedUser?._id && authUser?.user?._id) {
+      getMessages(selectedUser._id);
+      subscribeToMessages();
 
-    subscribeToMessages();
+      // Mark messages as read when opening chat
+      markMessagesAsRead(selectedUser._id);
+    }
 
     return () => unsubscribeFromMessages();
-  }, [selectedUser?._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+  }, [
+    selectedUser?._id,
+    authUser?.user?._id, // Add this dependency
+    getMessages,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+    markMessagesAsRead // Add this dependency
+  ]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
@@ -151,16 +162,16 @@ const ChatContainer = () => {
                   {message.text && <p className={message.isUnsent ? 'italic' : ''} >{message.text}</p>}
                 </div>
                 {isLastSent && (
-                  <>
-                    <span
-                      className={`text-xs text-gray-400 mt-1 self-end ${message.senderId === authUser.user._id ? '' : 'hidden'
-                        }`}
-                    >
-                      {message.isDelivered ? "Delivered" : "Sent"}
-                    </span>
-
-                  </>
-
+                  <span
+                    className={`text-xs text-gray-400 mt-1 self-end ${message.senderId === authUser?.user?._id ? '' : 'hidden'
+                      }`}
+                  >
+                    {message.isRead
+                      ? "Seen"
+                      : message.isDelivered
+                        ? "Delivered"
+                        : "Sent"}
+                  </span>
                 )}
               </div>
             )

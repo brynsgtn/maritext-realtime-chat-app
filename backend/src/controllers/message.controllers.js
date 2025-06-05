@@ -52,9 +52,21 @@ export const sendMessage = async (req, res) => {
 
         await newMessage.save();
 
+        // Send message to receiver if they're online
         if (receiverSocketId) {
             io.to(receiverSocketId).emit("newMessage", newMessage);
+
+            // Immediately notify sender about delivery since receiver is online
+            const senderSocketId = getReceiverSocketId(senderId);
+            if (senderSocketId) {
+                io.to(senderSocketId).emit("messageDelivered", {
+                    messageId: newMessage._id,
+                    receiverId,
+                    deliveredAt: newMessage.deliveredAt
+                });
+            }
         }
+
 
         res.status(201).json(newMessage);
     } catch (error) {
@@ -68,12 +80,18 @@ export const markLatestMessageAsRead = async (req, res) => {
         const { id: senderId } = req.params;
         const receiverId = req.userId;
 
-        // Find the latest unread message from sender to receiver
-        const latestUnread = await Message.findOne({
-            senderId,
-            receiverId,
-            isRead: false,
-        }).sort({ createdAt: -1 });
+        // Update all unread messages from sender to receiver
+        const updatedMessages = await Message.updateMany(
+            {
+                senderId,
+                receiverId,
+                isRead: false,
+                isUnsent: false,
+            },
+            {
+                $set: { isRead: true, readAt: new Date() },
+            }
+        );
 
         if (!latestUnread) {
             return res.status(200).json({
@@ -107,6 +125,45 @@ export const markLatestMessageAsRead = async (req, res) => {
     }
 };
 
+export const markMessagesAsRead = async (req, res) => {
+    try {
+        const { id: senderId } = req.params;
+        const receiverId = req.userId;
+
+        // Update all unread messages from sender to receiver
+        const updatedMessages = await Message.updateMany(
+            {
+                senderId,
+                receiverId,
+                isRead: false,
+                isUnsent: false,
+            },
+            {
+                $set: { isRead: true, readAt: new Date() },
+            }
+        );
+
+        // Notify the sender in real time if they're online
+        const senderSocketId = getReceiverSocketId(senderId);
+        if (senderSocketId && updatedMessages.modifiedCount > 0) {
+            io.to(senderSocketId).emit("messagesRead", {
+                receiverId,
+                readAt: new Date(),
+                updatedCount: updatedMessages.modifiedCount,
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Messages marked as read.",
+            updatedCount: updatedMessages.modifiedCount,
+        });
+    } catch (error) {
+        console.error("Error in markMessagesAsRead: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 export const unsendMessage = async (req, res) => {
     try {
         const { id: messageId } = req.params;
@@ -136,7 +193,23 @@ export const unsendMessage = async (req, res) => {
             });
         };
 
-        // to do -socket.io for unsent messages
+        // Emit socket event for real-time unsend update
+        const receiverSocketId = getReceiverSocketId(messageToUnsend.receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("messageUnsent", {
+                messageId: messageToUnsend._id,
+                unsentMessage: messageToUnsend
+            });
+        }
+
+        // Also emit to sender for their own UI update if they're on another device
+        const senderSocketId = getReceiverSocketId(senderId);
+        if (senderSocketId) {
+            io.to(senderSocketId).emit("messageUnsent", {
+                messageId: messageToUnsend._id,
+                unsentMessage: messageToUnsend
+            });
+        }
 
         res.status(200).json({
             success: true,
