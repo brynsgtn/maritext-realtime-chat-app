@@ -427,7 +427,7 @@ const Sidebar = () => {
         getContactRequests();
         getAllUsers();
         getUserContacts();
-    }, [getUserContacts, useMockData, getAllUsers, getContactRequests, isSendingContactRequest, isDecliningContact, isAcceptingContact, selectedUser]);
+    }, [getUserContacts, useMockData, getAllUsers, getContactRequests, isSendingContactRequest, isDecliningContact, isAcceptingContact]);
 
     const toggleMockData = () => {
         setUseMockData(!useMockData);

@@ -1,4 +1,4 @@
-// to do - delivered, read, optimize
+// to do - delivered, read, typing, optimize
 
 import { useChatStore } from "../store/useChatStore";
 import { useEffect, useRef, useState } from "react";
@@ -9,6 +9,10 @@ import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
+import dayjs from "dayjs";
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
 
 const ChatContainer = () => {
   const {
@@ -40,7 +44,7 @@ const ChatContainer = () => {
     subscribeToMessages();
 
     return () => unsubscribeFromMessages();
-  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages, isUnsendingMessage]);
+  }, [selectedUser?._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
@@ -127,7 +131,7 @@ const ChatContainer = () => {
                     <button
                       onClick={() => handleUnsendClick(message._id)}
                       className={`opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2 p-1 bg-none rounded-full cursor-pointer ${message.senderId === authUser.user._id ? '' : 'hidden'
-                      }`}
+                        }`}
                       title="Unsend message"
                     >
                       <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
@@ -147,12 +151,16 @@ const ChatContainer = () => {
                   {message.text && <p className={message.isUnsent ? 'italic' : ''} >{message.text}</p>}
                 </div>
                 {isLastSent && (
-                  <span
-                    className={`text-xs text-gray-400 mt-1 self-end ${message.senderId === authUser.user._id ? '' : 'hidden'
-                      }`}
-                  >
-                    {message.isDelivered ? "Delivered" : "Sent"}
-                  </span>
+                  <>
+                    <span
+                      className={`text-xs text-gray-400 mt-1 self-end ${message.senderId === authUser.user._id ? '' : 'hidden'
+                        }`}
+                    >
+                      {message.isDelivered ? "Delivered" : "Sent"}
+                    </span>
+
+                  </>
+
                 )}
               </div>
             )

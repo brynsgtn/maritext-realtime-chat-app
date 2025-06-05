@@ -38,21 +38,20 @@ export const sendMessage = async (req, res) => {
 
 
 
-        // const isDelivered = Boolean(receiverSocketId);
+        const receiverSocketId = getReceiverSocketId(receiverId);
+        const isDelivered = Boolean(receiverSocketId); // If socket exists, mark as delivered
 
         const newMessage = new Message({
             senderId,
             receiverId,
             text,
             image: imageUrl,
-            // to do - delivered feature
-            // isDelivered,
-            // deliveredAt: isDelivered ? new Date() : null,
+            isDelivered,
+            deliveredAt: isDelivered ? new Date() : null,
         });
 
         await newMessage.save();
 
-        const receiverSocketId = getReceiverSocketId(receiverId);
         if (receiverSocketId) {
             io.to(receiverSocketId).emit("newMessage", newMessage);
         }

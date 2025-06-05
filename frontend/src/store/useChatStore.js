@@ -185,6 +185,7 @@ export const useChatStore = create((set, get) => ({
         if (!selectedUser) return;
 
         const socket = useAuthStore.getState().socket;
+        const authUser = useAuthStore.getState();
 
         socket.on("newMessage", (newMessage) => {
             const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
@@ -194,11 +195,38 @@ export const useChatStore = create((set, get) => ({
                 messages: [...get().messages, newMessage],
             });
         });
+
+        // Listen for delivery confirmations
+        socket.on("messagesDelivered", ({ receiverId, deliveredOnConnection, updatedCount }) => {
+            console.log("Messages delivered event received:", { receiverId, deliveredOnConnection, updatedCount });
+            
+            set((state) => ({
+                messages: state.messages.map((msg) => {
+                    // Update messages sent by current user to the receiver who just came online
+                    if (msg.senderId === authUser.user._id && 
+                        msg.receiverId === receiverId && 
+                        !msg.isDelivered && 
+                        !msg.isUnsent) {
+                        return { ...msg, isDelivered: true, deliveredAt: new Date() };
+                    }
+                    return msg;
+                }),
+            }));
+        });
+        socket.emit("markMessagesDelivered", {
+            senderId: selectedUser._id,
+            receiverId: authUser._id,
+        });
     },
 
     unsubscribeFromMessages: () => {
         const socket = useAuthStore.getState().socket;
         socket.off("newMessage");
+    },
+
+    markMessageAsDelivered: (messageId, receiverId) => {
+        const socket = useAuthStore.getState().socket;
+        socket.emit("messageDelivered", { messageId, receiverId });
     },
 
     setSelectedUser: (selectedUser) => {
