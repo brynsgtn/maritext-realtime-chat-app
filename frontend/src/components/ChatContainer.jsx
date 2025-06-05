@@ -1,4 +1,4 @@
-// to do - typing, optimize
+// to do - fix online to online messag to seen (rerender, currently delivered), optimize
 
 import { useChatStore } from "../store/useChatStore";
 import { useEffect, useRef, useState } from "react";
@@ -7,6 +7,7 @@ import { Trash2, AlertTriangle } from "lucide-react";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
+import TypingIndicator from "./TypingIndicator";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
 import dayjs from "dayjs";
@@ -25,6 +26,7 @@ const ChatContainer = () => {
     unsendMessage,
     isUnsendingMessage,
     markMessagesAsRead,
+    typingUsers
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
@@ -38,6 +40,11 @@ const ChatContainer = () => {
   const [showImageModal, setShowImageModal] = useState(false);
   const [messageToUnsend, setMessageToUnsend] = useState(null);
 
+
+  // Check if selected user is typing
+  const isSelectedUserTyping = selectedUser && typingUsers.includes(selectedUser._id);
+
+
   useEffect(() => {
     if (selectedUser?._id && authUser?.user?._id) {
       getMessages(selectedUser._id);
@@ -50,18 +57,18 @@ const ChatContainer = () => {
     return () => unsubscribeFromMessages();
   }, [
     selectedUser?._id,
-    authUser?.user?._id, // Add this dependency
+    authUser?.user?._id,
     getMessages,
     subscribeToMessages,
     unsubscribeFromMessages,
-    markMessagesAsRead // Add this dependency
+    markMessagesAsRead,
   ]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages, isSelectedUserTyping]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -176,6 +183,17 @@ const ChatContainer = () => {
               </div>
             )
           })}
+
+          {/* Typing Indicator */}
+          {isSelectedUserTyping && (
+            <TypingIndicator
+              isTyping={isSelectedUserTyping}
+              userName={selectedUser?.fullName || selectedUser?.username || "User"}
+            />
+          )}
+
+          {/* Scroll anchor */}
+          <div ref={messageEndRef} />
         </div>
 
         {/* Unsend Confirmation Modal */}

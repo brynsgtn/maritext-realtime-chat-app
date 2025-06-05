@@ -19,6 +19,8 @@ export const useChatStore = create((set, get) => ({
     isInvitingUser: false,
     isRemovingContact: false,
     isUnsendingMessage: false,
+    typingUsers: [], // Array of user IDs who are currently typing
+    isCurrentUserTyping: false, // Track if current user is typing
 
     getUserContacts: async () => {
         set({ isContactsLoading: true });
@@ -250,6 +252,27 @@ export const useChatStore = create((set, get) => ({
             }));
         });
 
+        // Handle typing events
+        socket.on("userStartedTyping", ({ userId, timestamp }) => {
+            console.log(`User ${userId} started typing`);
+
+            // Only show typing indicator for the currently selected user
+            if (userId === selectedUser._id) {
+                set((state) => ({
+                    typingUsers: [...new Set([...state.typingUsers, userId])]
+                }));
+            }
+        });
+
+        socket.on("userStoppedTyping", ({ userId }) => {
+            console.log(`User ${userId} stopped typing`);
+
+            set((state) => ({
+                typingUsers: state.typingUsers.filter(id => id !== userId)
+            }));
+        });
+
+
         socket.emit("markMessagesDelivered", {
             senderId: selectedUser._id,
             receiverId: authUser.user._id,
@@ -265,9 +288,16 @@ export const useChatStore = create((set, get) => ({
     unsubscribeFromMessages: () => {
         const socket = useAuthStore.getState().socket;
         socket.off("newMessage");
+        socket.off("messageDelivered");
         socket.off("messagesDelivered");
         socket.off("messagesRead");
+        socket.off("messageReadUpdate");
         socket.off("messageUnsent");
+        socket.off("userStartedTyping");
+        socket.off("userStoppedTyping");
+
+        // Clear typing status when unsubscribing
+        set({ typingUsers: [], isCurrentUserTyping: false });
     },
 
     markMessageAsDelivered: (messageId, receiverId) => {
@@ -283,8 +313,33 @@ export const useChatStore = create((set, get) => ({
         }
     },
 
+    // Typing methods
+    startTyping: (targetUserId) => {
+        const socket = useAuthStore.getState().socket;
+        const { isCurrentUserTyping } = get();
+
+        if (!isCurrentUserTyping) {
+            set({ isCurrentUserTyping: true });
+            socket.emit("startTyping", { targetUserId });
+        }
+    },
+
+    stopTyping: (targetUserId) => {
+        const socket = useAuthStore.getState().socket;
+        const { isCurrentUserTyping } = get();
+
+        if (isCurrentUserTyping) {
+            set({ isCurrentUserTyping: false });
+            socket.emit("stopTyping", { targetUserId });
+        }
+    },
+
     setSelectedUser: (selectedUser) => {
-        set({ selectedUser })
+        set({
+            selectedUser,
+            typingUsers: [], // Clear typing indicators when switching chats
+            isCurrentUserTyping: false
+        })
         console.log(selectedUser)
     }
 }));

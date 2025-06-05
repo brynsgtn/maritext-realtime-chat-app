@@ -19,6 +19,9 @@ export function getReceiverSocketId(userId) {
 // used to store online users
 const userSocketMap = {} // {userId: socketId}
 
+// Store typing users: { userId: { targetUserId: timestamp } }
+const typingUsers = {};
+
 io.on("connection", (socket) => {
     console.log("A user connected", socket.id);
 
@@ -64,7 +67,7 @@ io.on("connection", (socket) => {
             console.error("Error in confirmMessageDelivery:", err.message);
         }
     });
-    
+
     socket.on("markMessagesDelivered", async ({ senderId, receiverId }) => {
         try {
             const updatedMessages = await Message.updateMany(
@@ -122,6 +125,96 @@ io.on("connection", (socket) => {
             console.error("Error in markMessagesAsRead:", err.message);
         }
     });
+
+    // Handle user started typing
+    socket.on("startTyping", ({ targetUserId }) => {
+        console.log(`User ${userId} started typing to ${targetUserId}`);
+        
+        // Store typing status
+        if (!typingUsers[userId]) {
+            typingUsers[userId] = {};
+        }
+        typingUsers[userId][targetUserId] = Date.now();
+
+        // Notify the target user
+        const targetSocketId = userSocketMap[targetUserId];
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("userStartedTyping", {
+                userId,
+                timestamp: Date.now()
+            });
+        }
+    });
+
+        // Handle user stopped typing
+    socket.on("stopTyping", ({ targetUserId }) => {
+        console.log(`User ${userId} stopped typing to ${targetUserId}`);
+        
+        // Remove typing status
+        if (typingUsers[userId]) {
+            delete typingUsers[userId][targetUserId];
+            if (Object.keys(typingUsers[userId]).length === 0) {
+                delete typingUsers[userId];
+            }
+        }
+
+        // Notify the target user
+        const targetSocketId = userSocketMap[targetUserId];
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("userStoppedTyping", {
+                userId
+            });
+        }
+    });
+
+    // Clear typing status when user disconnects
+    socket.on("disconnect", () => {
+        console.log("A user disconnected", socket.id);
+        
+        // Clear typing status for this user
+        if (typingUsers[userId]) {
+            // Notify all users this user was typing to
+            Object.keys(typingUsers[userId]).forEach(targetUserId => {
+                const targetSocketId = userSocketMap[targetUserId];
+                if (targetSocketId) {
+                    io.to(targetSocketId).emit("userStoppedTyping", {
+                        userId
+                    });
+                }
+            });
+            delete typingUsers[userId];
+        }
+
+        delete userSocketMap[userId];
+        io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    });
+
+    // Cleanup stale typing indicators (optional)
+    setInterval(() => {
+        const now = Date.now();
+        const TYPING_TIMEOUT = 10000; // 10 seconds
+
+        Object.keys(typingUsers).forEach(userId => {
+            Object.keys(typingUsers[userId]).forEach(targetUserId => {
+                if (now - typingUsers[userId][targetUserId] > TYPING_TIMEOUT) {
+                    // Remove stale typing status
+                    delete typingUsers[userId][targetUserId];
+                    if (Object.keys(typingUsers[userId]).length === 0) {
+                        delete typingUsers[userId];
+                    }
+
+                    // Notify target user
+                    const targetSocketId = userSocketMap[targetUserId];
+                    if (targetSocketId) {
+                        io.to(targetSocketId).emit("userStoppedTyping", {
+                            userId
+                        });
+                    }
+                }
+            });
+        });
+    }, 5000); // Check every 5 seconds
+
 
     // Function to mark messages as delivered when user comes online
     async function markMessagesAsDeliveredOnConnection(userId) {

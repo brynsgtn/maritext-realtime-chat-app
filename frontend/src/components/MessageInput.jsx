@@ -1,16 +1,79 @@
-import { useRef, useState } from "react";
-import { useChatStore } from "../store/useChatStore";
-import { Image, Send, X } from "lucide-react";
-import toast from "react-hot-toast";
+import React, { useState, useRef, useEffect } from 'react';
+import { useChatStore } from '../store/useChatStore';
+import { Send, Image, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const MessageInput = () => {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
   const fileInputRef = useRef(null);
-  const { sendMessage } = useChatStore();
+  const typingTimeoutRef = useRef(null);
+  
+  const { sendMessage, selectedUser, startTyping, stopTyping } = useChatStore();
+
+  // Handle typing indicators
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setText(value);
+
+    if (selectedUser) {
+      // Start typing if not already typing and there's text
+      if (value.trim() && !isTyping) {
+        setIsTyping(true);
+        startTyping(selectedUser._id);
+      }
+
+      // Clear existing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      // Set timeout to stop typing after 2 seconds of inactivity
+      typingTimeoutRef.current = setTimeout(() => {
+        if (isTyping) {
+          setIsTyping(false);
+          stopTyping(selectedUser._id);
+        }
+      }, 2000);
+
+      // Stop typing immediately if input is empty
+      if (!value.trim() && isTyping) {
+        setIsTyping(false);
+        stopTyping(selectedUser._id);
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+      }
+    }
+  };
+
+  // Stop typing when component unmounts or selected user changes
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      if (isTyping && selectedUser) {
+        stopTyping(selectedUser._id);
+      }
+    };
+  }, [selectedUser]);
+
+  // Stop typing when user changes
+  useEffect(() => {
+    if (isTyping) {
+      setIsTyping(false);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    }
+  }, [selectedUser?._id]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
       return;
@@ -30,7 +93,17 @@ const MessageInput = () => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
+    
     if (!text.trim() && !imagePreview) return;
+
+    // Stop typing when sending message
+    if (isTyping) {
+      setIsTyping(false);
+      stopTyping(selectedUser._id);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    }
 
     try {
       await sendMessage({
@@ -47,9 +120,14 @@ const MessageInput = () => {
     }
   };
 
-  return (
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e);
+    }
+  };
 
-    // <p>Message Input ....</p>
+  return (
     <div className="p-4 w-full">
       {imagePreview && (
         <div className="mb-3 flex items-center gap-2">
@@ -78,7 +156,8 @@ const MessageInput = () => {
             className="w-full input input-bordered rounded-lg input-sm sm:input-md"
             placeholder="Type a message..."
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
           />
           <input
             type="file"
@@ -108,4 +187,5 @@ const MessageInput = () => {
     </div>
   );
 };
+
 export default MessageInput;
