@@ -202,6 +202,13 @@ export const useChatStore = create((set, get) => ({
                 messageId: newMessage._id,
                 senderId: newMessage.senderId
             });
+
+            // IMMEDIATELY mark as read since chat window is open
+            socket.emit("markMessagesAsRead", {
+                senderId: newMessage.senderId,
+                receiverId: authUser.user._id,
+            });
+
         });
 
         // Listen for delivery confirmations
@@ -222,6 +229,21 @@ export const useChatStore = create((set, get) => ({
             }));
         });
 
+        // Listen for individual message delivery confirmations
+        socket.on("messageDelivered", ({ messageId, receiverId, deliveredAt }) => {
+            console.log("Single message delivered event received:", { messageId, receiverId, deliveredAt });
+
+            set((state) => ({
+                messages: state.messages.map((msg) => {
+                    if (msg._id === messageId && msg.senderId === authUser.user._id) {
+                        return { ...msg, isDelivered: true, deliveredAt: new Date(deliveredAt) };
+                    }
+                    return msg;
+                }),
+            }));
+        });
+
+
         // Listen for read confirmations
         socket.on("messagesRead", ({ receiverId, readAt, updatedCount }) => {
             console.log("Messages read event received:", { receiverId, readAt, updatedCount });
@@ -231,9 +253,15 @@ export const useChatStore = create((set, get) => ({
                     // Update messages sent by current user to the receiver who read them
                     if (msg.senderId === authUser.user._id &&
                         msg.receiverId === receiverId &&
-                        !msg.isRead &&
                         !msg.isUnsent) {
-                        return { ...msg, isRead: true, readAt: new Date(readAt) };
+                        return {
+                            ...msg,
+                            isRead: true,
+                            readAt: new Date(readAt),
+                            // Ensure it's also marked as delivered if it wasn't already
+                            isDelivered: true,
+                            deliveredAt: msg.deliveredAt || new Date(readAt)
+                        };
                     }
                     return msg;
                 }),
