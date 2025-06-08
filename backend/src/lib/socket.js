@@ -129,7 +129,7 @@ io.on("connection", (socket) => {
     // Handle user started typing
     socket.on("startTyping", ({ targetUserId }) => {
         console.log(`User ${userId} started typing to ${targetUserId}`);
-        
+
         // Store typing status
         if (!typingUsers[userId]) {
             typingUsers[userId] = {};
@@ -146,10 +146,10 @@ io.on("connection", (socket) => {
         }
     });
 
-        // Handle user stopped typing
+    // Handle user stopped typing
     socket.on("stopTyping", ({ targetUserId }) => {
         console.log(`User ${userId} stopped typing to ${targetUserId}`);
-        
+
         // Remove typing status
         if (typingUsers[userId]) {
             delete typingUsers[userId][targetUserId];
@@ -170,7 +170,7 @@ io.on("connection", (socket) => {
     // Clear typing status when user disconnects
     socket.on("disconnect", () => {
         console.log("A user disconnected", socket.id);
-        
+
         // Clear typing status for this user
         if (typingUsers[userId]) {
             // Notify all users this user was typing to
@@ -185,6 +185,7 @@ io.on("connection", (socket) => {
             delete typingUsers[userId];
         }
 
+        // Remove user from socket map and emit updated online users
         delete userSocketMap[userId];
         io.emit("getOnlineUsers", Object.keys(userSocketMap));
     });
@@ -214,8 +215,6 @@ io.on("connection", (socket) => {
             });
         });
     }, 5000); // Check every 5 seconds
-
-
     // Function to mark messages as delivered when user comes online
     async function markMessagesAsDeliveredOnConnection(userId) {
         try {
