@@ -1,5 +1,3 @@
-// to do - fix online to online messag to seen (rerender, currently delivered), optimize
-
 import { useChatStore } from "../store/useChatStore";
 import { useEffect, useRef, useState } from "react";
 import { Trash2, AlertTriangle } from "lucide-react";
