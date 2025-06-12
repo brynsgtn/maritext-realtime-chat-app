@@ -1,7 +1,7 @@
 A full-stack real-time chat application built using the MERN stack and Socket.IO.
 > 🔧 Inspired by a tutorial-based project, then extended with custom features and improvements to better simulate a production-grade chat experience.
 
-![screenshot](./screenshot.png)
+![screenshot](./screenshot/login.png)
 
 ---
 
