@@ -152,7 +152,7 @@ Expanded and customized with additional features by **Bryan Suguitan**
 
 **Bryan Harold R. Suguitan**  
 - GitHub: [@brynsgtn](https://github.com/brynsgtn)  
-- Portfolio: *[My Portfolio] (https://brynsgtn-webportfolio.vercel.app/)*  
+- Portfolio: *[My Portfolio](https://brynsgtn-webportfolio.vercel.app/)*  
 - Live Demo: [Maritext Realtime Chat](https://maritext-realtime-chat-app.onrender.com)
 
 ---
