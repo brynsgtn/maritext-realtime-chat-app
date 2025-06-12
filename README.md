@@ -1,159 +1,163 @@
-A full-stack real-time chat application built using the MERN stack and Socket.IO.
-> 🔧 Inspired by a tutorial-based project, then extended with custom features and improvements to better simulate a production-grade chat experience.
+# 💬 Maritext Realtime Chat App
 
-![screenshot](./screenshots/login.png)
+A full-stack real-time chat application built using the **MERN stack** and **Socket.IO**.
+
+> 🔧 Inspired by [MERN Stack Project: Realtime Chat App Tutorial - React.js & Socket.io by Codesistency](https://www.youtube.com/watch?v=ntKkVrQqBYY), then extended with custom features and improvements for a better user experience.
+
+![Login Screenshot](./screenshots/login.png)
 
 ---
 
 ## 👤 Users and Roles
-**All Users:** Can join chat rooms, send messages, and participate in real-time conversations.
+
+**All Users** can:
+- Add, accept, reject, and delete contacts  
+- Edit profile and username  
+- Send messages and images  
+- Participate in real-time, private conversations
 
 ---
 
 ## 🌐 General UI Features
 
 ### 1. Responsive Design
-- Mobile-first approach with optimized layouts for all devices
+- Mobile-first layout optimized for all screen sizes  
 - Clean, modern interface with intuitive navigation
 
 ### 2. Real-time Interface
-- **Message Display:** Live message updates without page refresh
-- **User List:** Real-time display of active users in chat rooms
-- **Join/Leave Notifications:** Automatic alerts when users enter or exit rooms
+- 💬 Live message updates with no refresh needed  
+- 👥 Real-time display of online users  
+- 🔔 Contact request notifications
 
-### 3. Chat Features
-- **Message Input:** Clean text input with send functionality
-- **Message History:** Persistent chat history for ongoing conversations
-- **User Identification:** Clear display of message senders and timestamps
+### 3. Chat Experience
+- ✍️ Clean input with image/message support  
+- 🕒 Timestamps with user name visibility  
+- 🗂️ Organized message threads per contact
 
 ---
 
 ## ✨ Features
 
 ### 🧱 Base Features from Tutorial
-- User room joining with username and room name
-- Socket.IO real-time messaging
-- User list display showing active participants
-- Join/leave notifications
-- Message broadcasting to all room participants
+- Real-time communication using Socket.IO  
+- User join with display name  
+- Active users list in real-time  
+- Profile customization  
+- Theme toggling
 
-### 🛠️ Additional Features I Added
-- ✅ Enhanced UI/UX with modern styling
-- ✅ Improved responsive design for mobile devices
-- ✅ Message timestamps for better conversation tracking
-- ✅ Better user experience with loading states
-- ✅ Enhanced error handling and user feedback
-- ✅ Optimized performance for real-time updates
-- ✅ Production-ready deployment configuration
+### 🛠️ Custom Features Added
+- ✅ Email verification + resend verification option  
+- ✅ Forgot password and password reset flow  
+- ✅ Contact system (add, accept/reject, delete)  
+- ✅ Delivery status: sent, delivered, and seen  
+- ✅ Contact filtering and search  
+- ✅ Invite a friend feature  
+- ✅ Message unsend functionality  
+- ✅ "User is typing..." animation  
+- ✅ Image modal viewer  
+- ✅ Update username option
 
 ---
 
 ## 🛠 Tech Stack
 
-**Frontend:**
-- HTML5, CSS3, JavaScript (ES6+)
-- Socket.IO Client
-- Responsive CSS Grid/Flexbox
+### Frontend
+- React.js  
+- Tailwind CSS + DaisyUI  
+- Socket.IO Client  
+- Mailtrap (for email testing)
 
-**Backend:**
-- Node.js + Express
-- Socket.IO Server
-- Path & HTTP modules
+### Backend
+- Node.js + Express  
+- MongoDB with Mongoose (for users, contacts, messages)  
+- Socket.IO Server  
+- Built-in `path` and `http` modules
 
-**Deployment:**
-- Render (Production hosting)
+### Deployment
+- **Render** (Full-stack deployment)
+
+---
 
 ## 📸 Screenshots
 
-Here are a few UI previews of the **Maritext Chat App**:
+### 🏁 Signup Page
+![Signup Page](./screenshots/signup.png)
 
-### 🏁 Landing Page
-![Landing Page](./screenshots/landing.png)
+### 🏁 Login Page
+![Login Page](./screenshots/login.png)
 
 ### 💬 Chat Interface
-![Chat Interface](./screenshots/chat.png)
+![Chat Interface](./screenshots/home.png)
 
-### 📱 Mobile View
-![Mobile View](./screenshots/mobile.png)
+### 📱 Profile View
+![Profile View](./screenshots/profile.png)
+
+### 📱 Settings View
+![Settings View](./screenshots/settings.png)
 
 ---
 
 ## 📌 Scope and Limitations
 
 ### ✅ Scope
-
-- Real-time messaging system with Socket.IO  
-- Multi-room chat functionality  
-- User management and room participation  
-
-#### Core Features:
-- Instant message delivery  
-- Room-based conversations  
-- User join/leave notifications  
-- Responsive web interface  
-- Cross-browser compatibility  
-
----
+- Real-time messaging via Socket.IO  
+- One-to-one room-based chat  
+- Contact and user management  
+- Persistent message storage in MongoDB  
+- Cross-platform and responsive design
 
 ### ⚠️ Limitations
 
 #### 🌐 Deployment Constraints
 - Hosted on **Render (Free Tier)**:
-  - May experience cold starts  
-  - Limited concurrent connections  
-  - Automatic sleep after 15 minutes of inactivity  
-
-#### 💾 Data Persistence
-- Messages are **not stored** in a database  
-- Chat history is **lost** when server restarts  
-- User sessions are **temporary**  
+  - May take 30–60 seconds to wake after inactivity  
+  - Limited concurrent users  
+  - Occasional cold starts
 
 #### 🔐 Security Considerations
-- No user authentication system  
-- Room names are **not protected**  
-- Basic input validation only  
+- No end-to-end encryption  
+- Basic input validation
 
 #### 📊 Performance Limits
-- Designed for **small to medium** chat rooms  
-- No message rate limiting  
-- Basic error handling for network issues  
+- Ideal for small to mid-sized chat use  
+- Lacks advanced message throttling or queuing
 
 ---
 
 ## 🔐 Security & Data Handling
 
-- Client-side input sanitization  
-- Socket.IO built-in security features  
-- No sensitive data storage  
+- Client-side sanitization of input  
+- MongoDB for storing messages and users securely  
 - Real-time connection management  
+- Socket.IO’s built-in transport-layer security
 
 ---
 
 ## 🌐 Live Demo
 
-Deployed on Render:  
-🔗 [https://maritext-realtime-chat-app.onrender.com/](https://maritext-realtime-chat-app.onrender.com/)
+🔗 [https://maritext-realtime-chat-app.onrender.com](https://maritext-realtime-chat-app.onrender.com)
 
-> ⚠️ *Note: Due to Render’s free tier limitations, the app may take 30–60 seconds to load initially if it has been inactive.*
+> ⚠️ *Note: May experience 30–60s delay if idle due to Render’s free tier limitations.*
 
 ---
 
 ## 📖 Tutorial Credit
 
-Original tutorial inspiration: *Real-time Chat App Tutorial*  
-Adapted and enhanced by Bryan Suguitan with added features and UI polish.
+Based on the original tutorial by [Codesistency on YouTube](https://www.youtube.com/watch?v=ntKkVrQqBYY)  
+Expanded and customized with additional features by **Bryan Suguitan**
 
 ---
 
 ## 👤 Author
 
-**Bryan Harold R. Suguitan** ([@brynsgtn](https://github.com/brynsgtn))  
-🌐 Portfolio: [Bryan Suguitan's Portfolio](https://your-portfolio-link.com)  
-📍 Live Demo: [maritext-realtime-chat-app.onrender.com](https://maritext-realtime-chat-app.onrender.com)
+**Bryan Harold R. Suguitan**  
+- GitHub: [@brynsgtn](https://github.com/brynsgtn)  
+- Portfolio: *[My Portfolio] (https://brynsgtn-webportfolio.vercel.app/)*  
+- Live Demo: [Maritext Realtime Chat](https://maritext-realtime-chat-app.onrender.com)
 
 ---
 
 ## 🙌 Acknowledgments
 
-Built with 💻 and ☕ by Bryan Suguitan  
-⭐ If you found this project helpful, please give it a star on GitHub!
+Built with 💻, ☕, and persistence by Bryan Suguitan.  
+⭐ If you found this project helpful, consider giving it a star!
